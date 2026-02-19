@@ -1,0 +1,654 @@
+{
+    "version": "1.0",
+    "description": "Finance Analysis Harness — 스킬 자동 활성화 규칙. 금융 분석 도메인 스킬 + 범용 도구 스킬 통합.",
+    "skills": {
+
+        "skill-developer": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "스킬 시스템 자체를 만들거나 관리하는 메타-스킬",
+            "promptTriggers": {
+                "keywords": [
+                    "skill system", "create skill", "add skill", "skill triggers",
+                    "skill rules", "hook system", "skill development", "skill-rules.json"
+                ],
+                "intentPatterns": [
+                    "(how do|how does|explain).*?skill",
+                    "(create|add|modify|build).*?skill",
+                    "skill.*?(work|trigger|activate|system)"
+                ]
+            }
+        },
+
+        "macro-economics": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "거시경제 지표(GDP, 인플레이션, 금리), Fed/한국은행 통화정책, 경기사이클 분석 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "GDP", "인플레이션", "inflation", "금리", "interest rate",
+                    "Fed", "연준", "한국은행", "BOK", "통화정책", "monetary policy",
+                    "경기사이클", "business cycle", "CPI", "PCE", "실업률", "unemployment",
+                    "국제수지", "balance of payments", "Goldilocks", "Stagflation",
+                    "Overheating", "Recession", "레짐", "regime", "거시경제", "macro"
+                ],
+                "intentPatterns": [
+                    "(분석|analyze|interpret).*?(거시|macro|경제|economy|GDP|CPI|금리)",
+                    "(Fed|연준|한국은행|BOK).*?(정책|policy|결정|decision|금리)",
+                    "(경기|business).*?(사이클|cycle|국면|regime)",
+                    "(인플레이션|inflation|물가).*?(원인|cause|전망|outlook)",
+                    "왜.*?(금리|물가|달러|환율).*?(오르|내리|변동)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "outputs/**/*.json",
+                    "outputs/**/*.py"
+                ]
+            }
+        },
+
+        "financial-signals": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "시장 시그널(VIX, 수익률 곡선, 신용 스프레드), 기술적 지표, 이상 탐지 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "VIX", "수익률 곡선", "yield curve", "신용 스프레드", "credit spread",
+                    "OAS", "HY", "RSI", "MACD", "볼린저", "Bollinger",
+                    "이동평균", "moving average", "Fear & Greed", "AAII",
+                    "자금 흐름", "fund flow", "이상 탐지", "anomaly",
+                    "시그널", "signal", "지표", "indicator", "센티먼트", "sentiment"
+                ],
+                "intentPatterns": [
+                    "(분석|analyze|interpret).*?(VIX|수익률|yield|스프레드|spread)",
+                    "(시그널|signal|지표|indicator).*?(해석|interpret|분석|analyze)",
+                    "(이상|anomaly|outlier).*?(탐지|detect|감지)",
+                    "(기술적|technical).*?(분석|analysis|지표|indicator)",
+                    "(공포|fear|탐욕|greed|센티먼트|sentiment).*?(지수|index|분석)"
+                ]
+            }
+        },
+
+        "korean-finance": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "한국 금융시장(KOSPI, KOSDAQ, 원화, 국고채), 한국은행 정책, 원달러 환율 분석 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "KOSPI", "KOSDAQ", "코스피", "코스닥", "원화", "원달러",
+                    "KRW", "국고채", "한국은행", "BOK", "한국 시장", "Korean market",
+                    "외국인 순매수", "수급", "pykrx", "ECOS", "BOK API",
+                    "한국 금융", "Korean finance", "한국 주식"
+                ],
+                "intentPatterns": [
+                    "(한국|Korea|KOSPI|KOSDAQ|원화|KRW).*?(분석|analyze|시장|market)",
+                    "(원달러|KRW|환율|exchange rate).*?(분석|전망|outlook)",
+                    "(한국은행|BOK).*?(금리|정책|policy|결정)",
+                    "(외국인|foreign).*?(순매수|매도|수급|flow)"
+                ]
+            }
+        },
+
+        "analysis-standards": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "금융 분석 코드(Python/pandas), 통계 모델(회귀/VAR/ARIMA), 시각화 코드 작성 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "pandas", "numpy", "statsmodels", "ARIMA", "VAR", "회귀분석",
+                    "regression", "LASSO", "시계열", "time series", "yfinance",
+                    "FRED", "분석 코드", "데이터 시각화", "visualization",
+                    "matplotlib", "plotly", "데이터 전처리", "preprocessing"
+                ],
+                "intentPatterns": [
+                    "(코드|code|작성|write).*?(분석|analysis|시계열|regression)",
+                    "(Python|pandas|numpy).*?(금융|finance|데이터|data)",
+                    "(시계열|time series|ARIMA|VAR).*?(분석|analyze|모델|model)",
+                    "(시각화|visualize|plot|chart).*?(데이터|data|지표|indicator)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/*.py",
+                    "outputs/charts/**"
+                ],
+                "contentPatterns": [
+                    "import pandas",
+                    "import numpy",
+                    "import yfinance",
+                    "from statsmodels",
+                    "web.DataReader"
+                ]
+            }
+        },
+
+        "market-microstructure": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "거래량 분석, 정보 비대칭, 가격 발견, GARCH 변동성 모델링, 이상 거래량 탐지 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "거래량", "volume", "GARCH", "ARCH", "변동성 모델", "volatility model",
+                    "가격 발견", "price discovery", "정보 비대칭", "information asymmetry",
+                    "허딩", "herding", "마켓 마이크로", "market microstructure",
+                    "이상 거래량", "volume anomaly", "스마트 머니", "smart money"
+                ],
+                "intentPatterns": [
+                    "(거래량|volume).*?(분석|analyze|급증|spike|이상)",
+                    "(GARCH|ARCH|변동성).*?(모델|model|분석)",
+                    "(가격 발견|price discovery).*?(분석|analyze)",
+                    "(허딩|herding|군집).*?(효과|effect|행동)"
+                ]
+            }
+        },
+
+        "portfolio-theory": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "포트폴리오 최적화, Sharpe Ratio, Mean-Variance, HRP, 자산배분 전략 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "포트폴리오", "portfolio", "Sharpe", "샤프", "Mean-Variance",
+                    "HRP", "공분산", "covariance", "자산 배분", "asset allocation",
+                    "CAPM", "팩터 모델", "factor model", "알파", "alpha", "베타", "beta",
+                    "최적화", "optimization", "리스크 분해", "risk decomposition",
+                    "효율적 프론티어", "efficient frontier"
+                ],
+                "intentPatterns": [
+                    "(포트폴리오|portfolio).*?(최적화|optimize|구성|construct|배분|allocate)",
+                    "(Sharpe|샤프|수익률).*?(계산|calculate|최대화|maximize)",
+                    "(자산|asset).*?(배분|allocate|비중|weight)",
+                    "(알파|alpha|베타|beta).*?(분리|decompose|계산|calculate)"
+                ]
+            }
+        },
+
+        "asset-class-universe": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "자산 클래스 비교, 섹터 로테이션, ETF 분석, 암호화폐 포함 자산 유니버스 설계 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "자산 클래스", "asset class", "ETF", "섹터", "sector",
+                    "섹터 로테이션", "sector rotation", "암호화폐", "crypto",
+                    "비트코인", "bitcoin", "이더리움", "ethereum", "스테이블코인",
+                    "stablecoin", "RWA", "원자재", "commodities", "FX", "외환",
+                    "채권", "bond", "주식", "equity", "자산 유니버스", "asset universe"
+                ],
+                "intentPatterns": [
+                    "(자산|asset).*?(비교|compare|선택|select|유니버스|universe)",
+                    "(섹터|sector).*?(로테이션|rotation|분석|analyze)",
+                    "(ETF|암호화폐|crypto).*?(분석|analyze|비교|compare)",
+                    "(리스크|risk).*?(리턴|return|프로파일|profile).*?(자산|asset)"
+                ]
+            }
+        },
+
+        "ai-finance-workflow": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "AI와 금융 분석 결합, 분석 파이프라인 설계, 도메인 지식 × AI 접목 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "분석 파이프라인", "analysis pipeline", "워크플로우", "workflow",
+                    "에이전트 파이프라인", "agent pipeline", "도메인 지식",
+                    "data-validator", "macro-analyst", "signal-interpreter",
+                    "report-writer", "컨텍스트 엔지니어링", "context engineering"
+                ],
+                "intentPatterns": [
+                    "(AI|에이전트|agent).*?(금융|finance|분석|analysis).*?(파이프라인|pipeline|워크플로|workflow)",
+                    "(분석|analysis).*?(순서|order|파이프|pipe|자동화|automate)",
+                    "어떤.*?(에이전트|agent).*?(먼저|순서|order)"
+                ]
+            }
+        },
+
+        "mermaid": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "다이어그램(플로우차트, 시퀀스, ER, 간트 차트 등) 생성 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "mermaid", "flowchart", "diagram", "다이어그램", "sequence diagram",
+                    "시퀀스 다이어그램", "ER diagram", "ER 다이어그램", "chart", "차트",
+                    "플로우차트", "gantt", "간트", "mindmap", "마인드맵"
+                ],
+                "intentPatterns": [
+                    "(create|make|draw|generate|만들|그려).*?(diagram|chart|다이어그램|차트|flowchart)",
+                    "(visualize|시각화).*?(flow|process|흐름|프로세스|architecture|아키텍처)",
+                    "mermaid.*?(code|syntax|diagram)"
+                ]
+            }
+        },
+
+        "docx": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Word 문서(.docx) 생성, 편집, 읽기 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "word", "Word", "docx", ".docx", "word document", "워드",
+                    "워드 문서", "document", "문서 생성", "report generation",
+                    "tracked changes", "comments", "리포트 문서"
+                ],
+                "intentPatterns": [
+                    "(create|make|generate|만들|생성).*?(word|docx|document|문서)",
+                    "(word|docx|문서).*?(create|make|generate|만들|생성)",
+                    "(edit|read|modify|편집|수정).*?(\\.docx|word document|워드)",
+                    "(export|저장|save).*?(word|docx|문서)"
+                ]
+            }
+        },
+
+        "pptx": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "PowerPoint 프레젠테이션(.pptx) 생성, 편집 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "powerpoint", "PowerPoint", "pptx", ".pptx", "presentation",
+                    "프레젠테이션", "슬라이드", "slide", "deck", "PPT",
+                    "발표 자료", "pitch deck"
+                ],
+                "intentPatterns": [
+                    "(create|make|generate|만들|생성).*?(pptx|powerpoint|presentation|프레젠테이션|슬라이드)",
+                    "(pptx|powerpoint|presentation).*?(create|make|generate|만들|생성)",
+                    "(slide|슬라이드|발표).*?(만들|생성|작성|create|make)"
+                ]
+            }
+        },
+
+        "pdf": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "PDF 파일 읽기, 생성, 합치기, 분석 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "pdf", "PDF", ".pdf", "pdf 읽기", "pdf 생성", "pdf 추출",
+                    "pdf extract", "pdf merge", "pdf split", "OCR", "pdf 변환"
+                ],
+                "intentPatterns": [
+                    "(read|extract|parse|읽|추출).*?(pdf|PDF)",
+                    "(create|generate|만들|생성).*?(pdf|PDF)",
+                    "(merge|split|combine|합치|분리).*?(pdf|PDF)",
+                    "pdf.*?(to|to|convert|변환)"
+                ]
+            }
+        },
+
+        "error-tracking": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "Sentry 에러 추적, 모니터링 설정 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "sentry", "Sentry", "error tracking", "에러 추적",
+                    "captureException", "monitoring", "모니터링", "performance tracking"
+                ],
+                "intentPatterns": [
+                    "(add|setup|설정).*?(sentry|error tracking|에러 추적)",
+                    "(handle|catch|fix).*?(error|exception|에러|예외)"
+                ]
+            }
+        },
+
+        "fastapi-backend-guidelines": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "FastAPI/Python 백엔드 개발 패턴 — MCP 서버, API 엔드포인트, 비동기 처리, Pydantic 모델 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "fastapi", "FastAPI", "uvicorn", "pydantic", "Pydantic",
+                    "async def", "await", "router", "endpoint", "api",
+                    "mcp server", "MCP 서버", "python backend", "파이썬 백엔드",
+                    "SQLModel", "SQLAlchemy", "asyncpg"
+                ],
+                "intentPatterns": [
+                    "(create|add|implement|만들|구현).*?(route|endpoint|API|router|service)",
+                    "(fix|debug|handle).*?(error|exception|backend|백엔드)",
+                    "(add|implement).*?(middleware|validation|error.*?handling)",
+                    "(fastapi|FastAPI|pydantic|Pydantic).*?(pattern|guide|best practice)",
+                    "(async|await).*?(pattern|function|method|handler)",
+                    "mcp.*?(server|서버|endpoint|route)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "mcp_servers/**/*.py",
+                    "**/mcp_*.py",
+                    "**/*_server.py"
+                ],
+                "contentPatterns": [
+                    "from fastapi import",
+                    "@router\\.",
+                    "async def",
+                    "BaseModel",
+                    "from pydantic"
+                ]
+            }
+        },
+
+        "pytest-backend-testing": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "pytest 테스트 작성 — 단위 테스트, 통합 테스트, 비동기 패턴, mock/fixture 작성 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "test", "tests", "testing", "unit test", "integration test",
+                    "pytest", "test coverage", "coverage", "mock", "mocking",
+                    "fixture", "fixtures", "async test", "@pytest.mark",
+                    "테스트", "단위 테스트", "통합 테스트"
+                ],
+                "intentPatterns": [
+                    "(write|create|add|만들|작성).*?test",
+                    "(how to|어떻게).*?test",
+                    "test.*?(service|repository|route|endpoint|API)",
+                    "(improve|increase|check).*?coverage",
+                    "(mock|stub|fake).*?(database|session|repository|service)",
+                    "(async|await).*?test",
+                    "failing test|테스트.*?(실패|오류)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/test_*.py",
+                    "**/*_test.py",
+                    "**/tests/**/*.py",
+                    "**/conftest.py"
+                ],
+                "contentPatterns": [
+                    "@pytest\\.mark",
+                    "import pytest",
+                    "def test_",
+                    "async def test_",
+                    "@pytest\\.fixture"
+                ]
+            }
+        },
+
+        "frontend-design": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "웹 컴포넌트, 랜딩 페이지, 대시보드, React 컴포넌트 등 프론트엔드 UI 제작 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "webpage", "web page", "landing page", "dashboard",
+                    "UI", "component", "React", "HTML", "CSS",
+                    "웹페이지", "랜딩페이지", "대시보드", "컴포넌트",
+                    "website", "interface", "layout"
+                ],
+                "intentPatterns": [
+                    "(build|create|make|만들|제작).*?(web|page|component|UI|dashboard|landing)",
+                    "(design|style|beautify|꾸미).*?(page|component|UI|interface)",
+                    "(HTML|CSS|React).*?(component|layout|design)"
+                ]
+            }
+        },
+
+        "web-design-guidelines": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "UI 코드 검토 — 접근성, UX, 웹 디자인 베스트 프랙티스 감사 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "review UI", "UI 리뷰", "check accessibility", "접근성",
+                    "audit design", "UX review", "UX 검토", "best practices",
+                    "web design", "웹 디자인"
+                ],
+                "intentPatterns": [
+                    "(review|audit|check).*?(UI|UX|design|accessibility|접근성)",
+                    "(accessibility|접근성).*?(check|audit|improve|개선)",
+                    "(web|UI|UX).*?(best practice|guideline|standard)"
+                ]
+            }
+        },
+
+        "vercel-react-best-practices": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "low",
+            "description": "React/Next.js 성능 최적화 — 컴포넌트 리뷰, 번들 최적화, 데이터 패칭 패턴 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "React performance", "Next.js performance", "bundle size",
+                    "code splitting", "lazy loading", "SSR", "SSG",
+                    "리액트 성능", "번들 최적화"
+                ],
+                "intentPatterns": [
+                    "(optimize|improve|개선).*?(React|Next\\.js|performance|성능|bundle)",
+                    "(React|Next\\.js).*?(performance|최적화|optimization)",
+                    "(bundle|chunk).*?(optimize|split|reduce|최적화)"
+                ]
+            }
+        },
+
+        "fed-rate-forecasting": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "CME FedWatch 기반 Fed 금리 기대 변화 예측 — LASSO, Treasury 제외, Horizon 분리, HAC, Selection Frequency 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "LASSO", "lasso", "FedWatch", "CME", "기대금리", "d_Exp_Rate",
+                    "금리 예측", "Fed rate", "rate forecasting", "rate expectation",
+                    "Post-LASSO", "HAC", "Newey-West", "Selection Frequency",
+                    "TimeSeriesSplit", "horizon", "simultaneity", "동시결정",
+                    "Treasury 제외", "spurious regression", "허구적 회귀",
+                    "변수 선택", "variable selection", "FOMC 예측"
+                ],
+                "intentPatterns": [
+                    "(predict|forecast|예측).*?(Fed|금리|rate|FOMC|기대금리)",
+                    "(LASSO|lasso|변수 선택|variable selection).*?(금리|rate|Fed|회귀|regression)",
+                    "(CME|FedWatch|기대금리|d_Exp_Rate).*?(분석|analyze|모델|model)",
+                    "(Treasury|국채).*?(제외|exclude|simultaneity|동시결정)",
+                    "(horizon|만기|단기|장기).*?(분리|separate|split|금리|rate)",
+                    "(HAC|Newey-West|자기상관|autocorrelation).*?(표준오차|standard error|보정)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "projects/forecast/**/*.py",
+                    "**/*forecasting*.py",
+                    "**/*fedwatch*.py",
+                    "**/*lasso*.py"
+                ],
+                "contentPatterns": [
+                    "LassoCV",
+                    "TimeSeriesSplit",
+                    "d_Exp_Rate",
+                    "EXCLUDE_PATTERNS",
+                    "days_to_meeting",
+                    "cov_type.*HAC"
+                ]
+            }
+        },
+
+        "eth-blockchain-analysis": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "ETH/USD Chainlink 오라클 + Uniswap DEX 시계열 정제·분석 — 온체인 데이터, 오라클-DEX 스프레드, 블록체인 데이터 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "ETH", "ethereum", "Chainlink", "chainlink", "Uniswap", "uniswap",
+                    "oracle", "오라클", "DEX", "온체인", "on-chain", "onchain",
+                    "blockchain", "블록체인", "smart contract", "스마트컨트랙트",
+                    "VWAP", "staleness", "spread_bps", "global_round_id",
+                    "transaction_hash", "block_number", "디페그", "depeg",
+                    "ETH/USD", "crypto", "암호화폐", "DeFi", "defi"
+                ],
+                "intentPatterns": [
+                    "(analyze|분석|clean|정제|process).*?(ETH|ethereum|chainlink|uniswap|온체인|blockchain)",
+                    "(ETH|ethereum|blockchain|온체인).*?(data|데이터|시계열|time series|spread|스프레드)",
+                    "(oracle|오라클|DEX).*?(spread|스프레드|price|가격|compare|비교)",
+                    "(on-chain|onchain|블록체인).*?(분석|analysis|data|데이터)",
+                    "(chainlink|uniswap).*?(price|가격|data|데이터|merge|합치|compare)",
+                    "(defi|DeFi|crypto|암호화폐).*?(분석|analysis|data|시계열)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "datasets/open_price/**/*.py",
+                    "datasets/open_price/**/*.csv",
+                    "**/eth_*.py",
+                    "**/chainlink*.py",
+                    "**/uniswap*.py"
+                ],
+                "contentPatterns": [
+                    "chainlink",
+                    "uniswap",
+                    "global_round_id",
+                    "transaction_hash",
+                    "spread_bps",
+                    "staleness"
+                ]
+            }
+        },
+
+        "fedwatch-data-pipeline": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "CME FedWatch 확률분포 데이터 → 기대금리 패널 변환 파이프라인 — meeting_YYYYMMDD_merged.csv 처리, exp_rate_bp 계산, 시장 데이터 결합 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "FedWatch", "fedwatch", "meeting_", "merged.csv", "exp_rate_bp",
+                    "rate_uncertainty", "days_to_meeting", "기대금리 패널", "확률분포",
+                    "가중평균", "weighted average", "ACTUAL_FOMC_RATES", "forecast_error",
+                    "filter_by_coverage", "complete_cme_panel", "panel_history",
+                    "회의별 파일", "패널 구조", "CME 데이터", "FOMC 확률",
+                    "금리 확률분포", "rate probability", "기대금리 계산"
+                ],
+                "intentPatterns": [
+                    "(FedWatch|CME|FOMC).*?(확률|probability|분포|distribution|패널|panel)",
+                    "(meeting.*csv|merged.csv).*?(변환|convert|처리|process|파이프|pipeline)",
+                    "(기대금리|exp_rate|rate expectation).*?(계산|calculate|변환|convert|패널|panel)",
+                    "(확률분포|probability).*?(기대|expected|가중|weighted|금리|rate)",
+                    "(panel|패널).*?(FedWatch|CME|FOMC|meeting_date|asof_date)",
+                    "(forecast_error|예측 오차|actual.*rate).*?(FOMC|meeting|회의)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "**/meeting_*_merged.csv",
+                    "**/complete_cme_panel*.csv",
+                    "**/create_full_panel*.py",
+                    "**/data_pipeline*.py",
+                    "projects/forecast/**/*.py"
+                ],
+                "contentPatterns": [
+                    "meeting_date",
+                    "asof_date",
+                    "exp_rate_bp",
+                    "days_to_meeting",
+                    "calculate_rate_statistics",
+                    "ACTUAL_FOMC_RATES"
+                ]
+            }
+        },
+
+        "hybrid-agent-teams": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "medium",
+            "description": "Claude Code Agent Teams + 멀티 AI 시스템(Perplexity/Gemini/Codex) 하이브리드 워크플로우 — 팀메이트 생성·관리, 병렬 개발, AI 역할 분담 설계 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "Agent Teams", "agent teams", "teammate", "teammates", "팀메이트",
+                    "CLAUDE_CODE_EXPERIMENTAL_AGENT_TEAMS", "hybrid workflow", "하이브리드",
+                    "split-pane", "in-process", "create-teammate", "shutdown-teammate",
+                    "병렬 개발", "parallel development", "AI 역할 분담", "멀티 AI",
+                    "lead agent", "lead teammate", "코드 리뷰 팀", "review team"
+                ],
+                "intentPatterns": [
+                    "(Agent Teams|팀메이트|teammate).*?(활성화|enable|생성|create|관리|manage)",
+                    "(병렬|parallel|동시).*?(에이전트|agent|AI|teammate).*?(작업|work|개발|develop)",
+                    "(Claude|claude).*?(teams|team|teammate).*?(사용|use|설정|setup|활성화)",
+                    "(멀티|multi).*?AI.*?(역할|role|분담|split|분리|separate|조합|combine)",
+                    "(Perplexity|Gemini|Codex).*?(Claude|teams|팀|구현|implement|리뷰|review)",
+                    "(Claude Teams|claude teams).*?(구현|implement|리뷰|review|리팩|refactor)",
+                    "어떤.*?AI.*?(담당|assign|맡|적합|best).*?(작업|task|리서치|research)"
+                ]
+            }
+        },
+
+        "eimas-agent-system": {
+            "type": "domain",
+            "enforcement": "suggest",
+            "priority": "high",
+            "description": "EIMAS 멀티에이전트 경제 분석 시스템 — MessageBus 기반 에이전트 통신, Orchestrator-Worker 패턴, 다중 AI API(Claude/GPT/Gemini/Perplexity) 조합 작업 시 활성화",
+            "promptTriggers": {
+                "keywords": [
+                    "EIMAS", "eimas", "MessageBus", "message_bus", "AgentRole",
+                    "MessageType", "BaseAgent", "Orchestrator", "orchestrator",
+                    "멀티에이전트", "multi-agent", "에이전트 통신", "agent communication",
+                    "다중 AI", "multi-AI", "에이전트 시스템", "agent system",
+                    "openai_orchestrator", "claude_agent", "gemini_agent", "perplexity_agent",
+                    "register_agent", "process_task", "economics_workflow",
+                    "에이전트 아키텍처", "agent architecture", "worker agent"
+                ],
+                "intentPatterns": [
+                    "(멀티에이전트|multi-agent|에이전트 시스템).*?(설계|design|구현|implement|경제|economics)",
+                    "(MessageBus|에이전트 통신|agent.*communication).*?(설계|pattern|패턴|구현)",
+                    "(Orchestrator|오케스트레이터).*?(Worker|에이전트|agent|패턴|pattern)",
+                    "(Claude|GPT|Gemini|Perplexity).*?(에이전트|agent|조합|combine|멀티|multi)",
+                    "(경제|economics|금융|finance).*?(에이전트|agent|자동화|automate|파이프|pipeline)",
+                    "(BaseAgent|base_agent).*?(상속|inherit|구현|implement|추가|add)",
+                    "새.*?(에이전트|agent).*?(추가|add|등록|register|만들|create)"
+                ]
+            },
+            "fileTriggers": {
+                "pathPatterns": [
+                    "projects/autoai/**/*.py",
+                    "**/eimas/**/*.py",
+                    "**/agents/claude_agent.py",
+                    "**/agents/gemini_agent.py",
+                    "**/core/message_bus.py",
+                    "**/core/base_agent.py"
+                ],
+                "contentPatterns": [
+                    "MessageBus",
+                    "AgentRole",
+                    "BaseAgent",
+                    "openai_orchestrator",
+                    "process_task",
+                    "send_message.*receiver"
+                ]
+            }
+        }
+
+    },
+
+    "notes": {
+        "enforcement_types": {
+            "suggest": "스킬 제안 — 차단하지 않음, 권장 사항",
+            "block": "가드레일 — 스킬 확인 전까지 실행 차단",
+            "warn": "경고 — 실행은 허용하지만 주의 표시"
+        },
+        "priority_levels": {
+            "critical": "항상 트리거 (최우선)",
+            "high": "명확한 매칭 시 트리거",
+            "medium": "관련 작업 시 트리거",
+            "low": "명시적 언급 시만 트리거"
+        }
+    }
+}

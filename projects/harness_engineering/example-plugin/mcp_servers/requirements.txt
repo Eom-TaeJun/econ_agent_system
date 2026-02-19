@@ -1,0 +1,4 @@
+mcp>=1.0.0
+requests>=2.31.0
+yfinance>=0.2.36
+pykrx>=1.0.45

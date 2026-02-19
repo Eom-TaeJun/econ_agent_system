@@ -1,0 +1,30 @@
+{
+  "mcpServers": {
+
+    "fred-api": {
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp_servers/mcp_fred_server.py"],
+      "env": {
+        "FRED_API_KEY": "${FRED_API_KEY}"
+      }
+    },
+
+    "market-data": {
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp_servers/mcp_market_server.py"],
+      "env": {
+        "BASE_CURRENCY": "${BASE_CURRENCY:-USD}"
+      }
+    },
+
+    "eimas": {
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp_servers/mcp_eimas_server.py"],
+      "env": {
+        "EIMAS_ROOT": "${EIMAS_ROOT:-/home/tj/projects/autoai/eimas}",
+        "EIMAS_API_URL": "${EIMAS_API_URL:-http://localhost:8000}"
+      }
+    }
+
+  }
+}
