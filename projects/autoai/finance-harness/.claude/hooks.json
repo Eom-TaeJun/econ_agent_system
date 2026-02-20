@@ -1,0 +1,49 @@
+{
+  "_version": "2.0.0",
+  "_plugin": "Finance Harness Plugin",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash -c 'echo \"[Finance Harness v2.0.0] Session started: $(date +%Y-%m-%d\\ %H:%M)\" && cd /home/tj/projects/autoai/finance-harness 2>/dev/null || true && if [ -f .env ]; then export $(grep -v \"^#\" .env | grep -E \"(FRED|FINNHUB|PERPLEXITY|ALPHA_VANTAGE)_\" | xargs) 2>/dev/null || true; fi && echo \"API Keys: FRED=${FRED_API_KEY:+SET} | FINNHUB=${FINNHUB_API_KEY:+SET} | PERPLEXITY=${PERPLEXITY_API_KEY:+SET}\"'",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "You are a financial safety validator. Review this bash command for safety issues:\n\n1. Does it contain 'place_order' or broker execution commands WITHOUT prior risk-mgr APPROVED status in the conversation? If yes, respond: 'deny: Broker order execution requires risk-mgr approval first. Run /portfolio review and get APPROVED status.'\n\n2. Does it expose API keys (PERPLEXITY_API_KEY, FRED_API_KEY, FINNHUB_API_KEY) in stdout/logs (not just using them in Authorization headers)? If yes, respond: 'deny: API key exposure detected. Use environment variables, not inline values.'\n\n3. Is it a legitimate financial analysis command (curl to financial APIs, python analysis, data fetching, file operations in outputs/)? If yes, respond: 'approve'\n\nDefault: 'approve' for safe commands."
+          }
+        ]
+      },
+      {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Check this file write operation for security issues:\n\n1. Does the content contain raw API keys (strings matching patterns like 'pplx-', 'sk-', or long random strings that appear to be credentials)? If yes: 'deny: Do not write API keys to files. Use .env file for credentials.'\n\n2. Does it contain personal financial account numbers, SSN, or similar PII? If yes: 'deny: Personal financial data must not be written to analysis output files.'\n\n3. Is it writing to .env file directly (overwriting credentials)? If yes: 'deny: Do not overwrite .env. Edit manually.'\n\nOtherwise: 'approve'"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "prompt",
+            "prompt": "Before context compression, preserve the following in your system context:\n\n1. COMPLETED PHASES: Which analysis phases have been completed (Phase 1 Research / Phase 2 Analysis / Phase 3 Risk / Phase 4 Report)\n\n2. KEY METRICS FOUND: Any specific numbers already calculated (P/E ratio, target price, VaR, risk rating, sentiment score)\n\n3. CURRENT TICKER/TOPIC: What stock or topic is being analyzed\n\n4. PENDING STEPS: What still needs to be done\n\n5. FILE PATHS: Any output files already created\n\nSummarize these in 5-10 lines for context continuity."
+          }
+        ]
+      }
+    ]
+  }
+}
