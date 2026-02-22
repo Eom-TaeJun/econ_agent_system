@@ -24,6 +24,16 @@
         "EIMAS_ROOT": "${EIMAS_ROOT:-/home/tj/projects/autoai/eimas}",
         "EIMAS_API_URL": "${EIMAS_API_URL:-http://localhost:8000}"
       }
+    },
+
+    "broker": {
+      "command": "python",
+      "args": ["${CLAUDE_PLUGIN_ROOT}/mcp_servers/mcp_broker_server.py"],
+      "env": {
+        "TASTYTRADE_USER": "${TASTYTRADE_USER}",
+        "TASTYTRADE_PASS": "${TASTYTRADE_PASS}",
+        "BROKER_DRY_RUN": "true"
+      }
     }
 
   }

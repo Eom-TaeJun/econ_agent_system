@@ -23,7 +23,7 @@ description: |
   </commentary>
   </example>
 
-model: inherit
+model: claude-sonnet-4-6
 color: blue
 tools: ["Read", "Bash", "Grep"]
 ---

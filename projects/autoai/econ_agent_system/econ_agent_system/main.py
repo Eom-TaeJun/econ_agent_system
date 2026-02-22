@@ -1,19 +1,20 @@
 #!/usr/bin/env python3
 """
-Multi-Agent Economics Analysis System
-=====================================
+Multi-Agent Economics Analysis System (with Report Generation)
+==============================================================
 Main entry point for running AI agent-based economic analysis projects.
 
 Agents:
 - Perplexity: Research & Search
-- Claude: Code Generation
+- Claude: Code Generation + Report Writing
 - Gemini: Data Collection
-- OpenAI GPT-4: Orchestration
+- OpenAI GPT-4: Orchestration + Report Summary
 
 Usage:
-    python main.py                      # Interactive mode
-    python main.py --query "..."        # Direct query
-    python main.py --auto               # Auto mode (no checkpoints)
+    python main.py                              # Interactive mode
+    python main.py --query "..."                # Direct query
+    python main.py --auto                       # Auto mode (no checkpoints)
+    python main.py --query "..." --auto --report   # Auto + Report generation
     python main.py --template variable_discovery
 """
 
@@ -23,6 +24,7 @@ import sys
 import os
 import json
 from datetime import datetime
+
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
@@ -34,20 +36,48 @@ from workflows.economics_workflow import (
 )
 import logging
 logging.getLogger("httpx").setLevel(logging.WARNING)
+
+# ============================================================================
+# Report Generator Integration
+# ============================================================================
+
+# Try to import report generator
+try:
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'report_generator', 'report_generator'))
+    from report_agent import ReportOrchestrator
+    REPORT_AVAILABLE = True
+except ImportError as e:
+    REPORT_AVAILABLE = False
+    REPORT_IMPORT_ERROR = str(e)
+
+# Try to import visualization generator
+try:
+    from visualization_generator import ReportVisualizer
+    VISUALIZATION_AVAILABLE = True
+except ImportError:
+    VISUALIZATION_AVAILABLE = False
+
 # Banner
 BANNER = """
-╔══════════════════════════════════════════════════════════════════╗
-║         🤖 Multi-Agent Economics Analysis System 🤖              ║
-╠══════════════════════════════════════════════════════════════════╣
-║  Agents:                                                         ║
-║    📡 Perplexity  - Research & Web Search                        ║
-║    💻 Claude      - Code Generation & Analysis                   ║
-║    📊 Gemini      - Data Collection                              ║
-║    🎯 OpenAI GPT  - Project Orchestration                        ║
-╠══════════════════════════════════════════════════════════════════╣
-║  Focus: Economics & Data Analysis | Finding Meaningful Variables ║
-╚══════════════════════════════════════════════════════════════════╝
+╔═══════════════════════════════════════════════════════════════════╗
+║         🤖 Multi-Agent Economics Analysis System 🤖               ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  Agents:                                                          ║
+║    📡 Perplexity  - Research & Web Search                         ║
+║    💻 Claude      - Code Generation & Analysis                    ║
+║    📊 Gemini      - Data Collection                               ║
+║    🎯 OpenAI GPT  - Project Orchestration                         ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  Focus: Economics & Data Analysis | Finding Meaningful Variables  ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  📄 Report Generation: {report_status}                                       ║
+╚═══════════════════════════════════════════════════════════════════╝
 """
+
+def get_banner():
+    """Get banner with report status"""
+    status = "✅ Available" if REPORT_AVAILABLE else "❌ Unavailable"
+    return BANNER.format(report_status=status.ljust(12))
 
 def check_api_keys():
     """Check which API keys are available"""
@@ -95,9 +125,154 @@ def show_variables():
     
     print("\n" + "-" * 50)
 
+
+# ============================================================================
+# Report Generation Functions
+# ============================================================================
+
+async def generate_report_from_json(json_path: str, output_name: str = None,
+                                     korean_only: bool = False,
+                                     english_only: bool = False,
+                                     include_visuals: bool = True):
+    """Generate DOCX report from analysis JSON output with visualizations"""
+    
+    if not REPORT_AVAILABLE:
+        print(f"❌ Report Generator not available: {REPORT_IMPORT_ERROR}")
+        print("   Install with: pip install anthropic openai")
+        return None
+    
+    print("\n" + "="*60)
+    print("📊 GENERATING BILINGUAL REPORT WITH VISUALIZATIONS")
+    print("="*60)
+    print("   🤖 Claude  → Methodology, Results, Discussion")
+    print("   🤖 GPT-4   → Executive Summary, Introduction, Conclusion")
+    print("   📊 Charts  → Heatmap, Time Series, Tables")
+    print("="*60)
+    
+    try:
+        # Get task_id first
+        with open(json_path, 'r', encoding='utf-8') as f:
+            json_data = json.load(f)
+        task_id = json_data.get('task_id', 'unknown')
+        
+        # 1. Generate visualizations (if available)
+        visuals_file = None
+        if include_visuals and VISUALIZATION_AVAILABLE:
+            print("\n📊 Generating visualizations...")
+            try:
+                visualizer = ReportVisualizer(output_dir='outputs/report_images')
+                visuals_result = visualizer.generate_from_json(json_path)
+                
+                if visuals_result.images or visuals_result.tables:
+                    visuals_file = f"outputs/visualization_result_{task_id}.json"
+                    with open(visuals_file, 'w', encoding='utf-8') as f:
+                        json.dump({
+                            'images': visuals_result.images,
+                            'tables': visuals_result.tables,
+                            'metadata': visuals_result.metadata
+                        }, f, indent=2, ensure_ascii=False)
+                    print(f"   📁 Visuals saved: {visuals_file}")
+            except Exception as e:
+                print(f"   ⚠️ Visualization failed: {e}")
+        elif include_visuals and not VISUALIZATION_AVAILABLE:
+            print("   ⚠️ Visualization not available (install matplotlib, seaborn)")
+        
+        # 2. Generate text sections
+        orchestrator = ReportOrchestrator()
+        result = await orchestrator.generate_report(json_path)
+        
+        # Save sections
+        sections_file = f"outputs/report_sections_{task_id}.json"
+        
+        with open(sections_file, 'w', encoding='utf-8') as f:
+            json.dump({
+                'sections': result['sections'],
+                'metadata': result['metadata']
+            }, f, indent=2, ensure_ascii=False, default=str)
+        
+        print(f"\n📁 Sections saved: {sections_file}")
+        
+        # 3. Build DOCX using Node.js
+        output_name = output_name or f"outputs/report_{task_id}"
+        docx_path = await build_docx(sections_file, output_name, visuals_file)
+        
+        if docx_path:
+            print(f"\n✅ Report generated successfully!")
+            print(f"   📄 DOCX: {docx_path}")
+            return docx_path
+        
+    except Exception as e:
+        print(f"\n❌ Report generation failed: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+async def build_docx(sections_file: str, output_name: str, visuals_file: str = None):
+    """Build DOCX using Node.js document_builder.js (with optional visuals)"""
+    import subprocess
+    
+    script_dir = os.path.join(os.path.dirname(__file__), 'report_generator', 'report_generator')
+    
+    # Prefer v2 builder (supports images/tables), fallback to original
+    builder_path = os.path.join(script_dir, 'document_builder_v2.js')
+    if not os.path.exists(builder_path):
+        builder_path = os.path.join(script_dir, 'document_builder.js')
+    
+    if not os.path.exists(builder_path):
+        print(f"   ⚠️ document_builder.js not found at {script_dir}")
+        return None
+    
+    print(f"\n🔨 Building DOCX document...")
+    
+    # Check if docx is installed
+    try:
+        check = subprocess.run(
+            ['node', '-e', "require('docx')"],
+            capture_output=True,
+            cwd=script_dir
+        )
+        if check.returncode != 0:
+            print("   📦 Installing docx package...")
+            subprocess.run(['npm', 'install', 'docx'], cwd=script_dir, check=True)
+    except Exception as e:
+        print(f"   ⚠️ Node.js check failed: {e}")
+    
+    # Build command with absolute paths
+    sections_abs = os.path.abspath(sections_file)
+    output_abs = os.path.abspath(output_name)
+    
+    cmd = ['node', builder_path, sections_abs, output_abs]
+    
+    # Add visuals if available
+    if visuals_file and os.path.exists(visuals_file):
+        visuals_abs = os.path.abspath(visuals_file)
+        cmd.extend(['--visuals', visuals_abs])
+        print(f"   📊 Including visualizations from: {visuals_file}")
+    
+    # Run document builder
+    result = subprocess.run(
+        cmd,
+        capture_output=True,
+        text=True,
+        cwd=script_dir
+    )
+    
+    if result.returncode != 0:
+        print(f"   ❌ DOCX build failed: {result.stderr}")
+        return None
+    
+    print(result.stdout)
+    return f"{output_abs}.docx"
+
+
+# ============================================================================
+# Main Workflow Functions
+# ============================================================================
+
 async def run_interactive():
     """Run in interactive mode"""
-    print(BANNER)
+    print(get_banner())
     check_api_keys()
     
     print("\n💡 Commands:")
@@ -105,15 +280,24 @@ async def run_interactive():
     print("   templates   - Show workflow templates")
     print("   variables   - Show common economic variables")
     print("   auto        - Toggle auto mode (skip checkpoints)")
+    print("   report      - Toggle report generation")
     print("   quit/exit   - Exit the program")
     print("-" * 50)
     
     orchestrator = create_orchestrator()
     auto_mode = False
+    report_mode = False
     
     while True:
         try:
-            user_input = input("\n🎯 Enter query (or command): ").strip()
+            mode_status = []
+            if auto_mode:
+                mode_status.append("AUTO")
+            if report_mode:
+                mode_status.append("REPORT")
+            mode_str = f" [{', '.join(mode_status)}]" if mode_status else ""
+            
+            user_input = input(f"\n🎯 Enter query{mode_str}: ").strip()
             
             if not user_input:
                 continue
@@ -136,9 +320,19 @@ async def run_interactive():
                 print(f"   Auto mode is now {status}")
                 continue
             
+            if user_input.lower() == 'report':
+                if not REPORT_AVAILABLE:
+                    print(f"   ❌ Report Generator not available")
+                    continue
+                report_mode = not report_mode
+                status = "ON" if report_mode else "OFF"
+                print(f"   Report generation is now {status}")
+                continue
+            
             # Run the project
             print(f"\n🚀 Starting project analysis...")
             print(f"   Auto mode: {'ON' if auto_mode else 'OFF'}")
+            print(f"   Report mode: {'ON' if report_mode else 'OFF'}")
             
             result = await orchestrator.run_project(user_input, auto_mode=auto_mode)
             
@@ -163,6 +357,10 @@ async def run_interactive():
                 with open(output_file, 'w', encoding='utf-8') as f:
                     json.dump(result, f, indent=2, default=str, ensure_ascii=False)
                 print(f"\n📁 Results saved to: {output_file}")
+                
+                # Generate report if enabled
+                if report_mode and REPORT_AVAILABLE:
+                    await generate_report_from_json(output_file)
             
             print("="*60)
             
@@ -171,9 +369,12 @@ async def run_interactive():
         except Exception as e:
             print(f"\n❌ Error: {str(e)}")
 
-async def run_direct(query: str, auto_mode: bool = False, template: str = None):
+
+async def run_direct(query: str, auto_mode: bool = False, template: str = None,
+                     generate_report: bool = False, korean_only: bool = False,
+                     english_only: bool = False):
     """Run with direct query"""
-    print(BANNER)
+    print(get_banner())
     check_api_keys()
     
     # Apply template if specified
@@ -199,12 +400,33 @@ async def run_direct(query: str, auto_mode: bool = False, template: str = None):
         json.dump(result, f, indent=2, default=str, ensure_ascii=False)
     
     print(f"\n📁 Results saved to: {output_file}")
+    
+    # Generate report if requested
+    if generate_report:
+        if REPORT_AVAILABLE:
+            await generate_report_from_json(
+                output_file,
+                korean_only=korean_only,
+                english_only=english_only
+            )
+        else:
+            print(f"\n⚠️ Report generation skipped: {REPORT_IMPORT_ERROR}")
+    
     return result
+
 
 def main():
     """Main entry point"""
     parser = argparse.ArgumentParser(
-        description="Multi-Agent Economics Analysis System"
+        description="Multi-Agent Economics Analysis System",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    python main.py                                    # Interactive mode
+    python main.py -q "Analyze Bitcoin" -a            # Direct query, auto mode
+    python main.py -q "Analyze Bitcoin" -a -r         # With report generation
+    python main.py -q "Analyze Bitcoin" -a -r -k      # Korean-only report
+        """
     )
     parser.add_argument(
         '--query', '-q',
@@ -227,6 +449,22 @@ def main():
         action='store_true',
         help='List available workflow templates'
     )
+    # Report generation arguments
+    parser.add_argument(
+        '--report', '-r',
+        action='store_true',
+        help='Generate DOCX report after analysis'
+    )
+    parser.add_argument(
+        '--korean-only', '-k',
+        action='store_true',
+        help='Generate Korean-only report'
+    )
+    parser.add_argument(
+        '--english-only', '-e',
+        action='store_true',
+        help='Generate English-only report'
+    )
     
     args = parser.parse_args()
     
@@ -235,9 +473,17 @@ def main():
         return
     
     if args.query:
-        asyncio.run(run_direct(args.query, args.auto, args.template))
+        asyncio.run(run_direct(
+            args.query,
+            args.auto,
+            args.template,
+            generate_report=args.report,
+            korean_only=args.korean_only,
+            english_only=args.english_only
+        ))
     else:
         asyncio.run(run_interactive())
+
 
 if __name__ == "__main__":
     main()

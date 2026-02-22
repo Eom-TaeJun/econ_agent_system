@@ -15,7 +15,7 @@ description: |
   </commentary>
   </example>
 
-model: inherit
+model: claude-sonnet-4-6
 color: green
 tools: ["Read", "Write", "Glob"]
 ---

@@ -22,7 +22,7 @@ description: |
   </commentary>
   </example>
 
-model: inherit
+model: claude-haiku-4-5
 color: yellow
 tools: ["Read", "Bash", "Glob"]
 ---

@@ -1,0 +1,116 @@
+{
+  "_description": "에이전트 계약 선언 (Semantic Kernel Handoff 패턴 + CrewAI role/goal 트라이어드)",
+  "_version": "1.0.0",
+  "_rule": "새 에이전트 추가 시 반드시 여기에도 등록. INTENT.md 어휘 레지스터와 동기화 유지.",
+
+  "agents": {
+
+    "orchestrator": {
+      "role": "조정자 (Coordinator)",
+      "goal": "사용자 요청을 원자적 작업으로 분해하고, 에이전트 간 의존 관계를 파악해 최적 파이프라인을 수립한다",
+      "backstory": "모든 분석의 시작점. 복잡한 요청일수록 작업 분해 품질이 최종 결과를 결정한다",
+      "canonical_triggers": ["모든 /analyze 요청", "복잡한 멀티-도메인 요청"],
+      "inputs_required": ["user_request"],
+      "outputs_produced": [
+        "outputs/context/orchestration_plan.json",
+        "outputs/context/orchestration_summary.json"
+      ],
+      "hands_off_to": ["researcher", "data-validator"],
+      "must_not": ["데이터 수집 직접 수행", "분석 직접 수행"]
+    },
+
+    "researcher": {
+      "role": "정보 수집가 (Intelligence Gatherer)",
+      "goal": "분석 주제와 관련된 뉴스·공시·리서치를 수집하고, 시장 센티먼트를 정량화한다",
+      "backstory": "대규모 문서 처리 전문가. Gemini 1M 컨텍스트를 활용한 대용량 뉴스 소화가 강점",
+      "canonical_triggers": ["리서치", "뉴스 수집", "공시 분석", "FOMC 관련"],
+      "inputs_required": ["user_request", "analysis_topic"],
+      "outputs_produced": ["outputs/context/research_summary.json"],
+      "hands_off_to": ["data-validator"],
+      "must_not": ["데이터 정량 분석", "레짐 판단", "리스크 계산"]
+    },
+
+    "data-validator": {
+      "role": "데이터 수호자 (Data Guardian)",
+      "goal": "수집된 모든 데이터의 품질을 검증하고, 이상치와 결측값을 식별해 분석 신뢰도를 보장한다",
+      "backstory": "분석의 안전 밸브. 검증 실패 시 파이프라인을 중단시키는 권한을 가진다",
+      "canonical_triggers": ["데이터 검증", "이상치 탐지", "품질 확인"],
+      "inputs_required": ["raw_data"],
+      "outputs_produced": ["outputs/context/validation_result.json"],
+      "hands_off_to": ["macro-analyst", "signal-interpreter"],
+      "must_not": ["분석 수행", "검증 실패 숨기기", "검증 건너뛰기"]
+    },
+
+    "macro-analyst": {
+      "role": "거시경제 분석가 (Macro Strategist)",
+      "goal": "복수 지표를 종합해 현재 경기 레짐을 결정하고, 통화정책 경로와 크로스에셋 함의를 도출한다",
+      "backstory": "레짐 판단이 모든 하위 분석의 방향을 결정한다. 단일 지표가 아닌 내러티브 일관성이 핵심",
+      "canonical_triggers": ["레짐 분석", "거시경제 분석", "Fed 정책 분석", "경기 사이클"],
+      "inputs_required": [
+        "outputs/context/validation_result.json",
+        "outputs/context/research_summary.json"
+      ],
+      "outputs_produced": ["outputs/context/regime_snapshot.json"],
+      "hands_off_to": ["signal-interpreter", "risk-mgr"],
+      "must_not": ["포트폴리오 가중치 계산", "개별 종목 분석"]
+    },
+
+    "signal-interpreter": {
+      "role": "시그널 해석가 (Signal Reader)",
+      "goal": "시장 시그널의 일관성을 확인하고, 레짐 판단과 모순되는 이상 시그널을 플래그한다",
+      "backstory": "시그널은 레짐의 증거다. 일관성 없는 시그널은 레짐 전환의 선행 신호일 수 있다",
+      "canonical_triggers": ["시그널 분석", "기술적 분석", "모멘텀 분석", "미시구조 분석"],
+      "inputs_required": [
+        "outputs/context/validation_result.json",
+        "outputs/context/regime_snapshot.json"
+      ],
+      "outputs_produced": ["outputs/context/signal_summary.json"],
+      "hands_off_to": ["risk-mgr", "quant-coder"],
+      "must_not": ["레짐 재판단", "데이터 수집"]
+    },
+
+    "risk-mgr": {
+      "role": "리스크 관리자 (Risk Guardian)",
+      "goal": "레짐·시그널 컨텍스트를 바탕으로 VaR/CVaR를 계산하고, 꼬리 리스크와 버블 신호를 탐지한다",
+      "backstory": "CRITICAL 등급 감지 시 파이프라인을 중단하고 즉시 경보를 발령할 권한을 가진다",
+      "canonical_triggers": ["리스크 평가", "VaR 계산", "버블 탐지", "꼬리 리스크"],
+      "inputs_required": [
+        "outputs/context/regime_snapshot.json",
+        "outputs/context/signal_summary.json"
+      ],
+      "outputs_produced": ["outputs/context/risk_assessment.json"],
+      "hands_off_to": ["quant-coder", "report-writer"],
+      "must_not": ["포트폴리오 최적화", "투자 추천"]
+    },
+
+    "quant-coder": {
+      "role": "퀀트 코더 (Quantitative Engineer)",
+      "goal": "분석 요구사항을 검증 가능한 Python 코드로 구현하고, 해석 가능한 시각화를 생성한다",
+      "backstory": "코드는 분석의 도구이지 목적이 아니다. 실행 결과는 반드시 해석 가능한 형태여야 한다",
+      "canonical_triggers": ["포트폴리오 최적화", "시각화", "백테스팅", "퀀트 분석"],
+      "inputs_required": [
+        "outputs/context/risk_assessment.json",
+        "outputs/context/signal_summary.json"
+      ],
+      "outputs_produced": ["outputs/context/chart_paths.json"],
+      "hands_off_to": ["report-writer"],
+      "must_not": ["거시 레짐 판단", "리스크 등급 산정"]
+    },
+
+    "report-writer": {
+      "role": "리포트 작성가 (Synthesis Author)",
+      "goal": "모든 에이전트의 context 파일을 통합해 일관된 내러티브의 최종 리포트를 작성한다",
+      "backstory": "파이프라인의 최종 종착점. 분산된 분석 결과를 하나의 일관된 이야기로 엮는다",
+      "canonical_triggers": ["리포트 생성", "분석 요약", "최종 보고서"],
+      "inputs_required": [
+        "outputs/context/orchestration_plan.json",
+        "outputs/context/regime_snapshot.json",
+        "outputs/context/risk_assessment.json"
+      ],
+      "outputs_produced": ["outputs/reports/analyze_YYYYMMDD.md"],
+      "hands_off_to": [],
+      "must_not": ["새 분석 수행", "데이터 수집", "context 파일 수정"]
+    }
+
+  }
+}

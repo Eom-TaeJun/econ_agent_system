@@ -24,7 +24,7 @@ description: |
   </commentary>
   </example>
 
-model: inherit
+model: claude-sonnet-4-6
 color: cyan
 tools: ["Read", "Bash"]
 ---
