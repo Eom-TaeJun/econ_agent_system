@@ -1,0 +1,18 @@
+{
+  "task_id": "3ff3dd73",
+  "created_at": "2026-02-24T13:45:51.451519+00:00",
+  "type": "code_modification",
+  "project": "eimas",
+  "project_path": "/home/tj/projects/autoai/eimas",
+  "status": "pending",
+  "title": "리스크 점수 구성 요소 기여도 분해",
+  "target_file": "lib/risk_manager.py",
+  "description": "현재 risk_manager.py는 종합 리스크 점수를 출력하지만, 그 점수가 어떤 요소(VIX, 레버리지, 신용스프레드, 유동성 등)에서 얼마나 기여했는지 분해하지 않는다. 설명 가능한(Explainable) 리스크 점수 구조를 추가한다.",
+  "implementation_guide": "class RiskScoreAttribution:\n    def decompose_risk_score(risk_components: dict) -> dict:\n        # 각 리스크 요소의 기여도를 정규화해 비율로 반환\n        # 예: {\"vix_contrib\": 0.38, \"leverage_contrib\": 0.27,\n        #       \"spread_contrib\": 0.21, \"liquidity_contrib\": 0.14}\n\n    def format_explanation(attribution: dict) -> str:\n        # 사람이 읽을 수 있는 설명 생성\n        # \"리스크 점수 72의 주요 원인: VIX 기여 38%, 레버리지 27%\"\n\n    def flag_dominant_risk(attribution: dict) -> str:\n        # 가장 큰 기여 요소 반환 (경보 우선순위 결정용)",
+  "appeal_for": [
+    "AI Risk Engineer",
+    "Macro Data Scientist"
+  ],
+  "cover_letter_pitch": "\"리스크 점수를 VIX·레버리지·신용스프레드·유동성 기여도로 분해했습니다. 블랙박스 점수가 아니라 \"왜 이 점수인가\"를 설명할 수 있어야 실제 의사결정에 사용될 수 있다고 생각했습니다.\"",
+  "priority": 2
+}

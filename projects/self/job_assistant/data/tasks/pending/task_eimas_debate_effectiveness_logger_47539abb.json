@@ -1,0 +1,18 @@
+{
+  "task_id": "47539abb",
+  "created_at": "2026-02-24T13:45:51.451519+00:00",
+  "type": "code_modification",
+  "project": "eimas",
+  "project_path": "/home/tj/projects/autoai/eimas",
+  "status": "pending",
+  "title": "에이전트 토론 효과 정량화 로거 추가",
+  "target_file": "agents/methodology_debate.py",
+  "description": "현재 methodology_debate.py는 에이전트들이 토론하고 결론을 내지만, 토론이 결론을 \"얼마나\" 바꾸는지 측정하지 않는다. 토론 전 각 에이전트의 초기 결론과 토론 후 최종 결론을 비교해 편향 제거 효과를 수치로 기록한다.",
+  "implementation_guide": "class DebateEffectivenessLogger:\n    def record_initial_positions(agent_id, initial_conclusion, confidence):\n        # 토론 시작 전 각 에이전트의 포지션 기록\n        # {\"agent_id\": str, \"initial\": str, \"confidence\": float, \"timestamp\": str}\n\n    def record_final_consensus(final_conclusion, rounds_taken):\n        # 토론 후 최종 합의 기록\n\n    def compute_effectiveness():\n        # position_change_rate: 초기 대비 결론 바뀐 에이전트 비율\n        # consensus_round: 몇 번째 라운드에서 합의됐는가\n        # divergence_score: 초기 포지션 간 분산 (높을수록 다양한 관점)\n        # return: {\"change_rate\": float, \"consensus_round\": int, \"divergence\": float}\n\n    def save_log(output_path):\n        # outputs/debate_logs/ 에 JSON 저장",
+  "appeal_for": [
+    "Decision Scientist",
+    "AI Engineer"
+  ],
+  "cover_letter_pitch": "\"에이전트 토론 전/후 결론 변경률을 측정했습니다. 다양한 페르소나의 토론이 단일 에이전트 대비 결론을 XX% 케이스에서 수정했으며, 이는 AI 편향 제거가 정성적 주장이 아니라 측정 가능한 효과임을 보여줍니다.\"",
+  "priority": 1
+}

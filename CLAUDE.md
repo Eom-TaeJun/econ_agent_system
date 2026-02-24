@@ -17,6 +17,8 @@
 | `forecast` | `~/projects/forecast/` |
 | `harness` | `~/projects/harness/` |
 | `mlb-stats` | `~/projects/mlb-stats/` |
+| `self` | `~/projects/self/` |
+| `job-assistant` | `~/projects/self/job_assistant/` |
 
 ---
 
@@ -25,15 +27,24 @@
 | 단어 | 의미 |
 |------|------|
 | `머리` | Claude Code — 설계, 판단, 조율 |
-| `손` | 서브에이전트 (general-purpose) — 파일 작성, 수정, 실행 |
+| `손` | Codex CLI (`gpt-5.3-codex`) — 파일 작성, 수정, 실행 |
 
 ---
 
 ## 3. Team Agents
 
-구조: `머리 (Claude Code / Alpha)` → `손 (서브에이전트 / Beta)`
+구조: `머리 (Claude Code)` → `손 (Codex CLI)`
 
-**팀 에이전트 작업 시작 전 반드시 읽을 것:**
+**손 호출 명령어:**
+```bash
+codex exec --full-auto -C /path/to/project "작업 지시"
+```
+
+**인증**: ChatGPT 로그인 필요 (`codex login` → 브라우저 OAuth)
+- API 키 방식은 `gpt-5.3-codex` 접근 불가
+- 캐시 꼬임 시: `rm ~/.codex/models_cache.json` 후 재실행
+
+**상세 패턴:**
 → `~/projects/usegit/patterns/team-agents-workflow.md`
 
 ---

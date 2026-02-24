@@ -1,0 +1,18 @@
+{
+  "task_id": "f8663408",
+  "created_at": "2026-02-24T13:45:51.451519+00:00",
+  "type": "code_modification",
+  "project": "eimas",
+  "project_path": "/home/tj/projects/autoai/eimas",
+  "status": "pending",
+  "title": "VaR 통계 검증 모듈 추가 (Kupiec + Christoffersen)",
+  "target_file": "lib/stress_test.py",
+  "description": "현재 stress_test.py는 VaR를 계산하지만, 그 VaR 모델이 실제로 통계적으로 유효한지 검증하는 로직이 없다. Kupiec POF Test와 Christoffersen Interval Forecast Test를 추가해 Basel 규제 기준 충족 여부를 자동으로 판정한다.",
+  "implementation_guide": "class VaRBacktest:\n    def kupiec_pof_test(violations, n, confidence_level):\n        # 위반 횟수(violations)와 전체 관측 수(n)로\n        # LR_uc 통계량 계산 → chi2 분포 p-value\n        # H0: 실제 위반율 = (1 - confidence_level)\n        # return: {\"lr_stat\": float, \"p_value\": float, \"reject_h0\": bool}\n\n    def christoffersen_test(violation_sequence):\n        # 위반이 연속되는지 검정 (독립성)\n        # 전환행렬 추정 → LR_ind 통계량\n        # return: {\"lr_stat\": float, \"p_value\": float, \"reject_h0\": bool}\n\n    def basel_traffic_light(violations, n):\n        # 250거래일 기준 Basel 등급 판정\n        # 0-4: 초록, 5-9: 노랑, 10+: 빨강\n        # return: {\"color\": str, \"violations\": int, \"threshold\": int}\n\n    def run_full_backtest(returns_series, var_series, confidence_level=0.99):\n        # 전체 결과 딕셔너리 반환",
+  "appeal_for": [
+    "AI Risk Engineer",
+    "Market Risk Engineer"
+  ],
+  "cover_letter_pitch": "\"VaR 모델이 통계적으로 유효한지 Kupiec Test로 검증하고, Basel Traffic Light 기준으로 등급을 산출했습니다. 좋아 보이는 리스크 수치도 통계적 검증 없이는 믿지 않는 원칙을 시스템에 내재화했습니다.\"",
+  "priority": 1
+}

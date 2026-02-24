@@ -1,0 +1,18 @@
+{
+  "task_id": "8654f4af",
+  "created_at": "2026-02-24T13:45:51.451519+00:00",
+  "type": "code_modification",
+  "project": "eimas",
+  "project_path": "/home/tj/projects/autoai/eimas",
+  "status": "pending",
+  "title": "레짐별 포트폴리오 성과 지표 추가",
+  "target_file": "lib/performance_attribution.py",
+  "description": "현재 performance_attribution.py는 성과 귀속 분석을 하지만, 레짐(Goldilocks/Overheating/Stagflation/Recession)별 성과 비교 테이블이 없다. 레짐 탐지가 포트폴리오 성과를 실제로 개선했는지 수치로 증명한다.",
+  "implementation_guide": "class RegimePerformanceAnalyzer:\n    def compute_regime_metrics(returns_series, regime_labels):\n        # 레짐별로 분리 후 각 성과 지표 계산\n        # Sharpe Ratio: annualized (sqrt(252) 적용)\n        # Calmar Ratio: annualized return / max drawdown\n        # Max Drawdown: 누적 고점 대비 최대 낙폭\n        # Win Rate: 양수 수익률 비율\n        # return: DataFrame with regime x metric\n\n    def compare_regime_aware_vs_naive(regime_returns, naive_returns):\n        # 레짐 인식 전략 vs 단순 buy-and-hold 비교\n        # Sharpe 차이, 최대낙폭 차이\n        # return: {\"sharpe_improvement\": float, \"dd_reduction\": float}\n\n    def plot_regime_performance_table(output_path):\n        # 레짐별 성과표를 HTML/PNG로 저장\n        # outputs/regime_performance/ 에 저장",
+  "appeal_for": [
+    "Quant Researcher",
+    "AI Risk Engineer"
+  ],
+  "cover_letter_pitch": "\"GMM 레짐 탐지를 포트폴리오 전략에 결합했을 때 Goldilocks 레짐에서 Sharpe X.XX로 단순 전략 대비 XX% 향상됨을 백테스팅으로 확인했습니다. 레짐을 먼저 탐지하면 리스크 조정 수익률이 구조적으로 개선됩니다.\"",
+  "priority": 2
+}
