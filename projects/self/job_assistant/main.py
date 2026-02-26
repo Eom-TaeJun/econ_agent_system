@@ -79,6 +79,33 @@ def print_result(result, verbose: bool = False):
     print("\n" + "=" * 60)
 
 
+def save_analysis(analysis, output_dir: str) -> str:
+    """AnalyzerAgent 분석 결과를 JSON으로 저장 (eco_system_v2 연동용)"""
+    os.makedirs(output_dir, exist_ok=True)
+    from datetime import date
+    filename = f"{analysis.posting.company}_{analysis.posting.role}_{date.today()}_analysis.json"
+    filepath = os.path.join(output_dir, filename)
+
+    data = {
+        "company": analysis.posting.company,
+        "role": analysis.posting.role,
+        "vision": analysis.posting.vision,
+        "recent_work": analysis.posting.recent_work,
+        "key_competencies": analysis.key_competencies,
+        "technical_skills": analysis.technical_skills,
+        "soft_skills": analysis.soft_skills,
+        "culture_fit": analysis.culture_fit,
+        "keywords": analysis.keywords,
+        "cover_letter_sections": analysis.cover_letter_sections,
+    }
+
+    with open(filepath, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
+
+    print(f"  분석 저장: {filepath}")
+    return filepath
+
+
 def save_result(result, output_dir: str):
     """결과를 JSON으로 저장"""
     os.makedirs(output_dir, exist_ok=True)
@@ -201,6 +228,8 @@ def main():
             print("\n[2/3] AnalyzerAgent — Claude 분석")
             analyzer = AnalyzerAgent()
             analyzer.run(context)
+            if context.analysis:
+                save_analysis(context.analysis, OUTPUTS_DIR)
         else:
             print("\n[2/3] AnalyzerAgent — JobPosting 없음, 건너뜀")
 
