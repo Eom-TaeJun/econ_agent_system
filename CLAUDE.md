@@ -19,6 +19,7 @@
 | `mlb-stats` | `~/projects/mlb-stats/` |
 | `self` | `~/projects/self/` |
 | `job-assistant` | `~/projects/self/job_assistant/` |
+| `lm` | `~/projects/lm/` |
 
 ---
 
