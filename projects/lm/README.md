@@ -47,9 +47,14 @@ Claude Code에서 NotebookLM을 직접 활용하기 위한 설정 및 워크플�
 ## MCP 서버 상태
 
 - **서버명**: notebooklm
-- **설치 명령**: `claude mcp add notebooklm npx notebooklm-mcp@latest`
-- **인증**: 첫 사용 시 "Log me in to NotebookLM" → Chrome 브라우저 Google 로그인
-- **프로필**: standard (10개 툴, 라이브러리 관리 포함)
+- **구현체**: [alfredang/notebooklm-mcp](https://github.com/alfredang/notebooklm-mcp) (2026-02 교체)
+- **설치 경로**: `~/projects/lm/notebooklm-mcp/`
+- **실행**: `uv --directory ~/projects/lm/notebooklm-mcp run python server.py`
+- **인증**: `cd ~/projects/lm/notebooklm-mcp && uv run notebooklm login`
+- **인증 데이터**: `~/.notebooklm/` (브라우저 프로파일 저장)
+- **전환 이유**: 노트북 생성·소스 추가·컨텐츠 생성(팟캐스트·슬라이드 등) 지원
+
+> 이전 버전 (PleasePrompto/notebooklm-mcp): 질문·라이브러리 관리만 가능했음
 
 ---
 
@@ -58,17 +63,20 @@ Claude Code에서 NotebookLM을 직접 활용하기 위한 설정 및 워크플�
 | 툴 | 용도 |
 |----|------|
 | `ask_question` | 노트북에 질문 → Gemini 답변 |
-| `add_notebook` | 노트북 URL + 태그 저장 |
-| `list_notebooks` | 등록된 노트북 목록 확인 |
-| `select_notebook` | 현재 작업 노트북 선택 |
-| `search_notebooks` | 태그로 노트북 검색 |
-| `setup_auth / re_auth` | 계정 전환 시 재인증 |
+| `list_notebooks` | 계정 내 노트북 목록 조회 |
+| `create_notebook` | 새 노트북 생성 |
+| `add_source` | URL·텍스트 소스 추가 |
+| `generate_podcast` | 팟캐스트 오디오 생성 |
+| `generate_slides` | 슬라이드 생성 |
+| `generate_mindmap` | 마인드맵 생성 |
+| `generate_quiz` | 퀴즈·플래시카드 생성 |
 
 ---
 
 ## 검증 체크리스트
 
-- [ ] `claude mcp list` → notebooklm 항목 확인
-- [ ] "Log me in to NotebookLM" → 브라우저 인증 성공
-- [ ] 테스트 노트북 추가 → `add_notebook` 성공
-- [ ] `ask_question` 응답 확인
+- [x] Google Chrome WSL2 설치 (`/usr/bin/google-chrome-stable`)
+- [x] alfredang/notebooklm-mcp 설치 (`uv sync`)
+- [x] NotebookLM 인증 완료 (`uv run notebooklm login`)
+- [x] 서버 기동 테스트 통과
+- [ ] Claude Code 재시작 후 MCP 연결 확인
