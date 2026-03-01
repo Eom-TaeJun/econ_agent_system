@@ -55,9 +55,12 @@ class JobContext:
     role: str
     url: str = ""
     search_result: Optional[Dict] = None
-    job_posting: Optional[Any] = None   # JobPosting
-    analysis: Optional[Any] = None      # Analysis
-    cover_letters_raw: Dict[str, str] = field(default_factory=dict)  # {파일명: 내용}
+    job_posting: Optional[Any] = None       # JobPosting
+    analysis: Optional[Any] = None          # Analysis
+    collected_content: Optional[Any] = None # CollectedContent (CollectorAgent)
+    summarized_sources: Optional[Any] = None# List[SummarizedSource] (SummarizerAgent)
+    notebook_result: Optional[Any] = None   # NotebookResult (NotebookPublisher)
+    cover_letters_raw: Dict[str, str] = field(default_factory=dict)
     errors: List[str] = field(default_factory=list)
     messages: List[Message] = field(default_factory=list)
 

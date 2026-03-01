@@ -21,6 +21,17 @@ from core.message_bus import JobContext
 from agents.search_agent import SearchAgent
 from agents.analyzer_agent import AnalyzerAgent
 from agents.writer_agent import WriterAgent
+from agents.collector_agent import CollectorAgent
+from agents.summarizer_agent import SummarizerAgent
+from agents.notebook_publisher import NotebookPublisher
+
+# 사용 가능한 파이프라인 단계
+# collect  : CollectorAgent — 4카테고리 Perplexity 수집
+# summarize: SummarizerAgent — OpenAI/Gemini/Claude 요약
+# notebook : NotebookPublisher — 소스 파일 저장 + 업로드 가이드
+# analyze  : AnalyzerAgent — Claude 구조화 분석
+# write    : WriterAgent — 자소서 초안
+ALL_STEPS = ["collect", "summarize", "notebook", "analyze", "write"]
 
 import uuid
 import logging
@@ -160,9 +171,18 @@ def main():
         help=f"자소서 디렉토리 (기본: {COVER_LETTERS_DIR})",
     )
     parser.add_argument(
+        "--steps", "-s",
+        type=str,
+        default="collect,summarize,notebook,analyze,write",
+        help=(
+            "실행할 단계 (쉼표 구분). "
+            f"가능: {', '.join(ALL_STEPS)} / all (기본: 전체)"
+        ),
+    )
+    parser.add_argument(
         "--no-search",
         action="store_true",
-        help="Perplexity 검색 건너뜀 (기존 raw_search 사용)",
+        help="Perplexity 검색 건너뜀 (기존 raw_search 사용, 레거시)",
     )
     parser.add_argument(
         "--check-env",
@@ -213,36 +233,85 @@ def main():
     print(f"\n작업 시작 | task_id={context.task_id}")
     print(f"  대상: {args.company} / {args.role}")
 
+    # 실행 단계 파싱
+    steps_input = args.steps.lower()
+    if steps_input == "all":
+        steps = set(ALL_STEPS)
+    else:
+        steps = set(s.strip() for s in steps_input.split(","))
+
+    print(f"  실행 단계: {', '.join(s for s in ALL_STEPS if s in steps)}")
+
     # 파이프라인 실행
+    total = len([s for s in ALL_STEPS if s in steps])
+    current = 0
+
     try:
-        # Step 1: Search
-        if not args.no_search:
-            print("\n[1/3] SearchAgent — Perplexity 검색")
+        # [collect] CollectorAgent — 4카테고리 수집
+        if "collect" in steps:
+            current += 1
+            print(f"\n[{current}/{total}] CollectorAgent — 멀티카테고리 수집")
+            collector = CollectorAgent()
+            collector.run(context)
+
+        # 레거시 호환: collect 없이 search만 지정한 경우
+        elif not args.no_search and "analyze" in steps:
+            current += 1
+            print(f"\n[{current}/{total}] SearchAgent (레거시) — Perplexity 검색")
             search_agent = SearchAgent()
             search_agent.run(context)
-        else:
-            print("\n[1/3] SearchAgent — 건너뜀 (--no-search)")
 
-        # Step 2: Analyze
-        if context.job_posting:
-            print("\n[2/3] AnalyzerAgent — Claude 분석")
-            analyzer = AnalyzerAgent()
-            analyzer.run(context)
-            if context.analysis:
-                save_analysis(context.analysis, OUTPUTS_DIR)
-        else:
-            print("\n[2/3] AnalyzerAgent — JobPosting 없음, 건너뜀")
+        # [summarize] SummarizerAgent — 멀티모델 요약
+        if "summarize" in steps and context.collected_content:
+            current += 1
+            print(f"\n[{current}/{total}] SummarizerAgent — 멀티모델 요약")
+            summarizer = SummarizerAgent()
+            summarizer.run(context)
 
-        # Step 3: Write
-        if context.analysis:
-            print("\n[3/3] WriterAgent — 자소서 매핑")
+        # [notebook] NotebookPublisher — 소스 저장 + 업로드 가이드
+        if "notebook" in steps and context.summarized_sources:
+            current += 1
+            print(f"\n[{current}/{total}] NotebookPublisher — 소스 파일 생성")
+            publisher = NotebookPublisher()
+            publisher.run(context)
+
+        # [analyze] AnalyzerAgent — 구조화 분석
+        if "analyze" in steps:
+            # collected_content → job_posting 변환 (collect 결과 활용)
+            if context.collected_content and not context.job_posting:
+                from core.models import JobPosting
+                jd_raw = context.collected_content.raw.get("JD", "")
+                context.job_posting = JobPosting(
+                    company=context.company,
+                    role=context.role,
+                    vision="",
+                    jd=jd_raw,
+                    requirements=[],
+                    preferred=[],
+                    recent_work="",
+                    raw_search=jd_raw,
+                )
+
+            if context.job_posting:
+                current += 1
+                print(f"\n[{current}/{total}] AnalyzerAgent — Claude 분석")
+                analyzer = AnalyzerAgent()
+                analyzer.run(context)
+                if context.analysis:
+                    save_analysis(context.analysis, OUTPUTS_DIR)
+            else:
+                print(f"\n[{current}/{total}] AnalyzerAgent — JobPosting 없음, 건너뜀")
+
+        # [write] WriterAgent — 자소서 초안
+        if "write" in steps and context.analysis:
+            current += 1
+            print(f"\n[{current}/{total}] WriterAgent — 자소서 매핑")
             writer = WriterAgent()
             result = writer.run(context)
-
             print_result(result, verbose=args.verbose)
             save_result(result, OUTPUTS_DIR)
-        else:
-            print("\n[3/3] WriterAgent — Analysis 없음, 건너뜀")
+        elif "write" in steps:
+            print(f"\n[write] WriterAgent — Analysis 없음, 건너뜀")
 
     except KeyboardInterrupt:
         print("\n\n중단됨")

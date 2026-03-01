@@ -43,6 +43,37 @@ class CoverLetterSection:
 
 
 @dataclass
+class CollectedContent:
+    """CollectorAgent가 카테고리별로 수집한 원문"""
+    company: str
+    role: str
+    # 카테고리: JD / COMPANY / INSIDER / SUCCESS
+    raw: dict = field(default_factory=dict)
+    sources_used: List[str] = field(default_factory=list)
+    collected_at: str = field(default_factory=lambda: datetime.now().isoformat())
+
+
+@dataclass
+class SummarizedSource:
+    """NotebookLM에 올릴 소스 1개"""
+    title: str           # 노트북 소스 제목
+    content: str         # 업로드할 텍스트 본문
+    category: str        # JD / COMPANY / INSIDER / SUCCESS / PROFILE
+    model_used: str      # 어떤 모델로 요약했는지
+
+
+@dataclass
+class NotebookResult:
+    """NotebookPublisher 결과 — 생성된 소스 목록 + 저장 경로"""
+    company: str
+    role: str
+    sources: List[SummarizedSource] = field(default_factory=list)
+    output_dir: str = ""        # 소스 파일 저장 경로
+    notebook_id: str = ""       # MCP로 생성 후 채워짐
+    created_at: str = field(default_factory=lambda: datetime.now().isoformat())
+
+
+@dataclass
 class CoverLetterResult:
     """WriterAgent의 최종 결과물"""
     company: str
