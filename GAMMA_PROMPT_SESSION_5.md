@@ -5,6 +5,13 @@
 - **Style:** "Strategic & Visionary" (Waterfall charts, system architecture, clarity)
 - **Typography:** Titles 26pt, Subheaders 17pt, Body 12pt.
 - **Image Style:** "Architectural Logic" or "Crystalline Clarity" (Golden keys, transparent layers).
+- **Target Audience:** Business Professionals & Junior Data Analysts (Use clear, persuasive, and intuitive language; avoid overly academic jargon).
+- **Presentation Goal:** Deliver actionable insights and convince the audience of the core message using the "Reverse Pyramid" principle (Core conclusion first, supporting details next).
+- **Constraints & Negative Prompts:** 
+  - Do NOT use generic AI buzzwords or cliché corporate stock imagery.
+  - Keep bullet points terse (max 2 lines per bullet).
+  - Do NOT generate extra filler slides; stick strictly to the outlined headers.
+- **Gamma Engine Directives:** Strictly adhere to the `[Layout: ...]` tags. Use optimal visual balancing for text and images.
 
 ---
 

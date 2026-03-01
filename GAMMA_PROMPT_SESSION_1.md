@@ -11,6 +11,13 @@
 - **Layout Logic:** Prioritize 2-column or Grid layouts for "Vs." comparisons.
 - **Image Engine:** Use "Photorealistic" or "Clean 3D Isometric" style.
 - **Language:** Korean (Primary) with English technical terms in brackets.
+- **Target Audience:** Business Professionals & Junior Data Analysts (Use clear, persuasive, and intuitive language; avoid overly academic jargon).
+- **Presentation Goal:** Deliver actionable insights and convince the audience of the core message using the "Reverse Pyramid" principle (Core conclusion first, supporting details next).
+- **Constraints & Negative Prompts:** 
+  - Do NOT use generic AI buzzwords or cliché corporate stock imagery.
+  - Keep bullet points terse (max 2 lines per bullet).
+  - Do NOT generate extra filler slides; stick strictly to the outlined headers.
+- **Gamma Engine Directives:** Strictly adhere to the `[Layout: ...]` tags. Use optimal visual balancing for text and images.
 
 ---
 
