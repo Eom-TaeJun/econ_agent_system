@@ -34,16 +34,16 @@
 ---
 
 # [Layout: Split]
-# 1. 야구공 하나에 숨어있는 질문
-[Image: A detailed 3D infographic of a baseball hit trajectory with data overlays showing spin rate and launch angle.]
+# 1. 우리는 왜 분석을 하는가?
+[Image: A sleek, professional dashboard showing raw data transforming into a glowing, persuasive insight or chart. Clean 3D Isometric style.]
 
-### "왜 이 타자는 이 구종에만 약한가?"
+### "데이터로 타인을 설득하기 위하여"
 
-- **패턴의 발견:** 1년치 모든 타석 데이터를 모으는 것부터 시작합니다.
-- **데이터의 힘:** 단순한 해설이 아닌, 숫자로 증명된 처방(Prescription)을 내립니다.
-- **우리의 목표:** 5차시 마지막에 여러분은 직접 이 질문에 답하게 될 것입니다.
+- **분석의 본질:** 선형회귀(Linear Regression)든 머신러닝(ML)이든, 결국 데이터로 내 주장을 증명하고 타인을 설득하는 과정입니다.
+- **설득의 과정:** 이를 위해 우리는 데이터를 수집하고, 그 안에서 숨겨진 패턴을 발견해 냅니다.
+- **우리의 목표:** 화려한 기법에 매몰되지 않고, 분석 결과를 비즈니스 언어로 번역해 설득하는 법을 배웁니다.
 
-> **→ 실무에서는:** 스포츠 분석팀이 실제로 이 방법으로 선수 성과를 분석합니다.
+> **→ 실무에서는:** "왜 이런 결과가 나왔나?"에 대해 숫자로 증명된 명확한 근거(Prescription)를 제시해야 합니다.
 
 ---
 
@@ -103,15 +103,15 @@
 ---
 
 # [Layout: Split]
-# 6. 통계학의 시대와 그 한계
+# 6. 통계학(선형회귀)의 엄격함과 그 한계
 [Image: A chalkboard with complex formulas vs a computer screen with a neural network.]
 
-### 통계학의 한계
-- **변수 증가:** 변수가 100개만 넘어도 수식 제어가 불가능해집니다.
-- **가정의 파괴:** 키와 몸무게처럼 변수가 연관되면 수식이 깨집니다.
+### 설명과 계산량의 딜레마
+- **다중공선성(Multicollinearity):** 선형회귀는 변수끼리 상관성이 높으면 설명력이 왜곡되고 계산량이 폭증하여 이를 극도로 꺼려했습니다.
+- **엄격한 가정:** 완벽한 원인 규명을 추구하다 보니, 변수가 100개만 넘어가도 사람이 수식을 제어하기 불가능해졌습니다.
 
-### 새로운 발상
-- "설명은 잠시 접어두고, 우선 **예측**만이라도 잘하면 어떨까?"
+### 머신러닝(ML)의 파격적 발상
+- "다중공선성? 상관없다. 복잡한 수식 설명은 기계에 맡기고, 우리는 압도적인 **예측**에만 집중하자."
 
 ---
 
@@ -163,12 +163,16 @@
 ---
 
 # [Layout: Split]
-# 11. ML이 허용한 것: 블랙박스
-[Image: A sleek black cube with glowing lines. Data enters one side, answers exit the other.]
+# 11. 기계가 허용한 성과, 그리고 '블랙박스'의 오해
+[Image: A sophisticated crystal cube showing intricate, glowing neural pathways inside, demonstrating transparency. Photorealistic, cinematic lighting.]
 
-- **강력함:** 변수 1,000개도 거뜬히 처리.
-- **위험함:** "왜?"라고 물었을 때 답을 못함.
-- **2026 트렌드:** 규제(GDPR 등)로 인해 '설명 가능한 AI'가 필수 요건이 됨.
+### 다중공선성을 무시한 대가
+- **압도적 예측력:** 1,000개가 넘는 변수가 서로 겹치고 연관되든 말든, 거뜬히 처리하여 최고의 예측값을 냅니다.
+- **과거의 오해 (블랙박스):** 한때 ML은 "예측은 잘하는데 왜 그런지 설명은 못 하는 맹의(블랙박스)"로 치부되었습니다.
+
+### 2026년의 ML은 더 이상 블랙박스가 아니다
+- **투명해진 내부:** 이제 SHAP과 같은 설명 가능한 AI(XAI) 기법들로 모델 내부를 열어볼 수 있습니다. 
+- 복잡한 수식과 다중공선성의 제약을 벗어난 막강한 **예측력**을 누리면서도, 어떤 이유로 결정되었는지 **설명하고 설득**할 수 있게 되었습니다.
 
 ---
 
