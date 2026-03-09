@@ -1,0 +1,65 @@
+# ============================================================
+# eco_system — Base Profile (공통 기본값)
+# 모든 직무 프로필은 이 파일을 extends 하여 필요한 항목만 오버라이드
+# ============================================================
+
+name: "base"
+description: "공통 기본값 — 직접 실행하지 않음"
+
+# ─── 데이터 수집 ──────────────────────────────────────────────
+data:
+  lookback_days: 90           # 기본 수집 기간
+  sources:
+    macro: true               # FRED 거시지표 (금리, 스프레드, 인플레이션)
+    equity: true              # 주요 주가지수 (SPY, QQQ, EEM 등)
+    crypto: false             # 암호화폐 (기본 OFF)
+    korea: false              # 국내 지표 (KOSPI, 원달러 등)
+    credit: true              # 신용 스프레드 (HY, IG)
+    alternatives: false       # 대안투자 (원자재, 리츠 등)
+
+  tickers:
+    core: [SPY, QQQ, TLT, GLD, HYG, LQD]
+    extra: []                 # 프로필별 추가 티커
+
+# ─── 분석 설정 ────────────────────────────────────────────────
+analysis:
+  mode: quick                 # quick | full
+  focus:                      # 분석 우선순위 (순서대로)
+    - macro_regime            # 거시 레짐 (bull/bear/risk-off)
+    - credit_spread           # 신용 스프레드 방향
+    - momentum                # 모멘텀 신호
+
+  lasso:
+    enabled: false            # LASSO 예측 (full 모드에서만 활성)
+    horizons: [30, 90, 180]   # 예측 horizon (일)
+    n_splits: 5
+
+# ─── 에이전트 구성 ────────────────────────────────────────────
+agents:
+  research: true              # ResearchAgent (Perplexity 기반)
+  analysis: true              # AnalysisAgent (Claude 기반)
+  guardrail: false            # GuardrailAgent (검증 — full 모드 전용)
+
+  debate:
+    enabled: false            # AI 토론
+    max_rounds: 2
+    consensus_threshold: 0.80
+
+# ─── 리포트 설정 ──────────────────────────────────────────────
+report:
+  format: brief               # brief | detailed | dashboard
+  language: ko
+  audience: general
+  template: default
+  save_json: true
+  sections:
+    - signal                  # 최종 신호 (BULLISH/NEUTRAL/BEARISH)
+    - confidence              # 신뢰도
+    - rationale               # 근거 요약
+    - key_factors             # 핵심 요인
+
+# ─── 실행 제어 ────────────────────────────────────────────────
+execution:
+  timeout_seconds: 120
+  parallel_agents: true
+  retry_on_failure: 1

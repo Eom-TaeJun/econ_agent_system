@@ -1,0 +1,75 @@
+# ============================================================
+# Profile: 해외주식 RA (Research Analyst)
+# 대상: 증권사 해외주식팀 RA, IB 에쿼티 리서치 주니어
+# 용도: 섹터 분석, 기업 밸류에이션, 어닝 서프라이즈 추적
+# ============================================================
+
+name: "ra_equity"
+description: "해외주식 RA — 섹터/기업 중심 분석"
+extends: base
+
+data:
+  lookback_days: 180          # 어닝 사이클 반영을 위해 연장
+  sources:
+    macro: true
+    equity: true
+    crypto: false
+    korea: false
+    credit: true
+    alternatives: false
+
+  tickers:
+    core: [SPY, QQQ, IWM, EEM, EFA]
+    sectors: [XLK, XLF, XLE, XLV, XLC, XLI, XLP, XLU, XLB, XLRE]
+    extra: []                 # 커버 종목은 여기에 추가 (예: AAPL, NVDA)
+
+  focus_indicators:
+    - earnings_surprise       # 어닝 서프라이즈
+    - sector_rotation         # 섹터 로테이션
+    - pe_relative             # 상대 밸류에이션 (PER)
+    - institutional_flow      # 기관 자금 흐름
+
+analysis:
+  mode: full
+  focus:
+    - sector_rotation         # 1순위: 섹터 모멘텀
+    - earnings_momentum       # 2순위: 이익 모멘텀
+    - macro_regime            # 3순위: 거시 배경
+    - valuation               # 4순위: 밸류에이션
+
+  lasso:
+    enabled: true
+    horizons: [30, 90]        # 단기~중기 (분기 어닝 사이클)
+    n_splits: 5
+
+agents:
+  research: true
+  analysis: true
+  guardrail: true             # 리포트 팩트체크 필수
+
+  debate:
+    enabled: true
+    max_rounds: 2
+    consensus_threshold: 0.80
+
+  system_prompt_overlay: |
+    당신은 해외주식 리서치 애널리스트입니다.
+    분석 시 다음을 우선 고려하세요:
+    - 섹터 로테이션과 스타일 팩터 (성장 vs 가치)
+    - 어닝 모멘텀과 컨센서스 대비 서프라이즈
+    - 금리 환경이 밸류에이션 멀티플에 미치는 영향
+    - 결론은 "비중확대/중립/비중축소" + 목표가 방향으로 표현
+
+report:
+  format: detailed
+  language: ko
+  audience: portfolio_manager
+  template: ra_morning_brief
+  sections:
+    - signal
+    - confidence
+    - sector_breakdown        # 섹터별 세부 신호
+    - top_picks               # 주목 종목/섹터
+    - risk_factors            # 하방 리스크
+    - rationale
+    - key_factors

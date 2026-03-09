@@ -1,0 +1,75 @@
+# ============================================================
+# Profile: 매크로 애널리스트
+# 대상: 거시경제 리서치, 채권/FX 전략
+# 용도: 통화정책 방향, 금리/환율 전망, 크로스에셋 뷰
+# ============================================================
+
+name: "macro"
+description: "매크로 — 통화정책·금리·크로스에셋 분석"
+extends: base
+
+data:
+  lookback_days: 365
+  sources:
+    macro: true
+    equity: true
+    crypto: false
+    korea: true               # 원달러, KOSPI 포함 (글로벌 매크로 맥락)
+    credit: true
+    alternatives: true        # 원자재(원유, 금) 포함
+
+  tickers:
+    core: [TLT, IEF, SHY, TIP, GLD, DXY, HYG, LQD]
+    fx: [UUP, FXE, FXY]      # 달러, 유로, 엔
+    commodities: [GLD, USO, DBC]
+    extra: []
+
+  focus_indicators:
+    - fed_policy_path         # 연준 정책 경로 (FedWatch)
+    - yield_curve             # 수익률 곡선 형태
+    - breakeven_inflation     # 기대 인플레이션
+    - dollar_index            # 달러 강세/약세
+
+analysis:
+  mode: full
+  focus:
+    - credit_spread           # 1순위: 신용 환경
+    - macro_regime            # 2순위: 경기 레짐
+    - inflation_regime        # 3순위: 인플레이션 레짐
+    - momentum                # 4순위: 크로스에셋 모멘텀
+
+  lasso:
+    enabled: true
+    horizons: [90, 180]       # 중기 매크로 horizon
+
+agents:
+  research: true              # 뉴스·정책 발표 모니터링 필요
+  analysis: true
+  guardrail: true
+
+  debate:
+    enabled: true
+    max_rounds: 3             # 매크로 불확실성 높아 충분한 토론
+    consensus_threshold: 0.75
+
+  system_prompt_overlay: |
+    당신은 글로벌 매크로 전략가입니다.
+    분석 시 다음을 우선 고려하세요:
+    - 연준·ECB·BOJ 정책 경로와 시장 기대 간 괴리
+    - 인플레이션 경로 (공급 vs 수요 요인 분리)
+    - 달러 사이클이 신흥국 자산에 미치는 영향
+    - 결론은 "금리 방향 / 달러 방향 / 크로스에셋 비중" 3줄 요약
+
+report:
+  format: detailed
+  language: ko
+  audience: cio
+  template: macro_weekly
+  sections:
+    - signal
+    - confidence
+    - policy_outlook          # 통화정책 전망
+    - yield_curve_view        # 금리 커브 뷰
+    - cross_asset_matrix      # 크로스에셋 신호 매트릭스
+    - risk_factors
+    - rationale

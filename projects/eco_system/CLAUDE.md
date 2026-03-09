@@ -2,9 +2,41 @@
 
 ## 실행
 
+```bash
+python main.py --quick                  # 빠른 분석 (기본 프로필)
+python main.py --full                   # 전체 분석
+python main.py --profile ra_equity      # 해외주식 RA 모드
+python main.py --profile quant --full   # 퀀트 + 전체 분석
+python main.py --profile macro          # 매크로 모드
+python main.py --list-profiles          # 프로필 목록 확인
 ```
-python main.py --quick   # 빠른 실행
-python main.py --full    # 전체 실행
+
+## Profile 구조 (직무별 튜닝)
+
+범용 엔진(phases/) 위에 profile을 오버레이해서 직무별로 튜닝.
+**개별 모델을 추가하는 게 아니라 config 오버레이 방식.**
+
+```
+profiles/
+  base.yaml        ← 공통 기본값 (직접 실행 X)
+  ra_equity.yaml   ← 해외주식 RA (섹터/어닝 중심)
+  quant.yaml       ← 퀀트 (팩터/LASSO 중심)
+  macro.yaml       ← 매크로 (금리/FX/크로스에셋 중심)
+core/
+  profile.py       ← load_profile("ra_equity") → base + 오버레이 병합
+```
+
+새 직무 추가: `profiles/[name].yaml` 파일만 생성, 코드 수정 불필요.
+```yaml
+name: "new_profile"
+extends: base
+# 바꾸고 싶은 항목만 오버라이드
+data:
+  tickers:
+    extra: [AAPL, NVDA]
+agents:
+  system_prompt_overlay: |
+    직무별 추가 지시사항
 ```
 
 ## 고정 구조 (변경 금지)

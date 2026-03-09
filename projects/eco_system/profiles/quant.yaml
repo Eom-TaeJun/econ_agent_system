@@ -1,0 +1,77 @@
+# ============================================================
+# Profile: 퀀트 애널리스트
+# 대상: 퀀트 리서치, 체계적 전략 운용
+# 용도: 팩터 분석, 포트폴리오 최적화, 백테스트 신호 생성
+# ============================================================
+
+name: "quant"
+description: "퀀트 — 팩터/모델 기반 체계적 분석"
+extends: base
+
+data:
+  lookback_days: 365          # 팩터 유효성 검증을 위해 1년
+  sources:
+    macro: true
+    equity: true
+    crypto: false
+    korea: false
+    credit: true
+    alternatives: true        # 원자재, 리츠 팩터 포함
+
+  tickers:
+    core: [SPY, QQQ, IWM, TLT, GLD, HYG, LQD, TIP, VNQ, DBC]
+    factors: [MTUM, VLUE, QUAL, USMV, SIZE]  # 팩터 ETF
+    extra: []
+
+  focus_indicators:
+    - factor_momentum         # 팩터 모멘텀 (value/momentum/quality)
+    - regime_probability      # 레짐 전환 확률
+    - cross_asset_correlation # 자산 간 상관관계 변화
+    - volatility_regime       # 변동성 레짐
+
+analysis:
+  mode: full
+  focus:
+    - macro_regime            # 1순위: 레짐 분류 (LASSO 핵심)
+    - factor_rotation         # 2순위: 팩터 로테이션
+    - risk_on_off             # 3순위: 리스크온/오프
+    - credit_spread           # 4순위: 신용 환경
+
+  lasso:
+    enabled: true
+    horizons: [30, 90, 180]   # 전 horizon 활성
+    n_splits: 5
+    exclude_patterns:         # 동시성 편의 방지 변수
+      - d_US10Y
+      - d_US2Y
+      - d_Term_Spread
+
+agents:
+  research: false             # 퀀트는 정량 신호 중심 → Perplexity 불필요
+  analysis: true
+  guardrail: true
+
+  debate:
+    enabled: false            # 퀀트는 모델 신호 우선, 토론 불필요
+
+  system_prompt_overlay: |
+    당신은 체계적 투자 전략을 운용하는 퀀트 애널리스트입니다.
+    분석 시 다음을 우선 고려하세요:
+    - LASSO 회귀 계수의 통계적 유의성 (p-value, HAC 표준오차)
+    - 팩터 노출도와 레짐별 팩터 수익률
+    - 신호의 과거 Sharpe ratio와 최대 낙폭
+    - 결론은 수치 기반 (방향 + 크기 + 신뢰구간)으로 표현
+
+report:
+  format: dashboard
+  language: ko
+  audience: fund_manager
+  template: quant_signal_sheet
+  sections:
+    - signal
+    - confidence
+    - lasso_coefficients      # LASSO 계수 테이블
+    - regime_probability      # 레짐 확률 분포
+    - factor_exposure         # 팩터 노출도
+    - risk_metrics            # VaR, CVaR, 상관관계
+    - rationale
