@@ -21,6 +21,32 @@ class JobPosting:
 
 
 @dataclass
+class FilterConfig:
+    """공고 탐색 조건"""
+    companies: List[str] = field(default_factory=list)       # 검색 쿼리에 포함할 회사명
+    filter_companies: List[str] = field(default_factory=list) # 결과 후처리 필터용 회사명 (검색엔 포함 안 함)
+    roles: List[str] = field(default_factory=list)
+    exclude_keywords: List[str] = field(default_factory=list)
+    include_keywords: List[str] = field(default_factory=list)
+    career_level: str = "신입"  # "신입" / "인턴" / "all"
+    deadline_active_only: bool = True
+
+
+@dataclass
+class PostingCandidate:
+    """탐색된 공고 후보"""
+    company: str
+    role: str
+    deadline: str
+    is_expired: bool
+    requirements_raw: str
+    source_url: str
+    source: str
+    passed: bool
+    filter_flags: List[str] = field(default_factory=list)
+
+
+@dataclass
 class Analysis:
     """AnalyzerAgent가 생성하는 분석 결과"""
     posting: JobPosting

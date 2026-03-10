@@ -16,7 +16,7 @@ from pathlib import Path
 # 프로젝트 루트를 sys.path에 추가
 sys.path.insert(0, os.path.dirname(__file__))
 
-from config import API_CONFIG, COVER_LETTERS_DIR, OUTPUTS_DIR
+from config import API_CONFIG, COVER_LETTERS_DIR, DATA_DIR, OUTPUTS_DIR
 from core.message_bus import JobContext
 from agents.search_agent import SearchAgent
 from agents.analyzer_agent import AnalyzerAgent
@@ -164,6 +164,15 @@ def main():
     parser.add_argument("--company", "-c", type=str, help="기업명")
     parser.add_argument("--role", "-r", type=str, help="직무명")
     parser.add_argument("--url", "-u", type=str, default="", help="채용공고 URL (선택)")
+    parser.add_argument("--discover", action="store_true", help="공고 탐색 모드")
+    parser.add_argument("--match", action="store_true", help="프로필 기반 공고 탐색")
+    parser.add_argument(
+        "--exclude",
+        nargs="+",
+        default=[],
+        help="제외 키워드 (예: '토익스피킹 160' '이공계')",
+    )
+    parser.add_argument("--include-kw", nargs="+", default=[], help="포함 키워드")
     parser.add_argument(
         "--cover-letters-dir",
         type=str,
@@ -190,6 +199,12 @@ def main():
         help="API 키 환경변수 확인",
     )
     parser.add_argument(
+        "--profile-file",
+        type=str,
+        default=os.path.join("data", "profile.md"),
+        help="프로필 파일 경로 (기본: data/profile.md)",
+    )
+    parser.add_argument(
         "--verbose", "-v", action="store_true", help="상세 출력"
     )
 
@@ -202,6 +217,99 @@ def main():
         for name, ok in status.items():
             mark = "OK" if ok else "MISSING"
             print(f"  {name}: {mark}")
+        sys.exit(0)
+
+    if args.match:
+        from agents.discovery_agent import DiscoveryAgent
+        from agents.profile_analyzer import ProfileAnalyzer
+        from core.models import FilterConfig
+
+        if not API_CONFIG.anthropic_key:
+            print("\nERROR: API 키 누락: anthropic\nexport ANTHROPIC_API_KEY=...")
+            sys.exit(1)
+
+        profile_path = args.profile_file
+        if not os.path.isabs(profile_path):
+            profile_path = os.path.join(os.path.dirname(__file__), profile_path)
+
+        if not os.path.exists(profile_path):
+            fallback_path = os.path.join(DATA_DIR, "profile.md")
+            print(f"\nERROR: 프로필 파일이 없습니다: {profile_path}")
+            print(f"기본 위치: {fallback_path}")
+            sys.exit(1)
+
+        analyzer = ProfileAnalyzer()
+        search_config = analyzer.analyze(profile_path)
+
+        print("\n프로필 분석 완료:")
+        print(f"  직무 키워드: {search_config.role_keywords}")
+        print(f"  탐색 기업: {search_config.target_companies}")
+
+        all_candidates = []
+        agent = DiscoveryAgent()
+
+        # Samsung은 1회만 수집 (Playwright 비용)
+        print("  Samsung 공고 수집 중...")
+        samsung_pool = agent.fetch_samsung_once()
+        print(f"  Samsung {len(samsung_pool)}개 수집 완료")
+
+        # 직무 키워드 검색 (상위 5개)
+        # companies는 검색 쿼리에 넣지 않고 filter_companies로 후처리 필터만 적용
+        top_roles = search_config.role_keywords[:5]
+        for i, role in enumerate(top_roles):
+            print(f"  [{i+1}/{len(top_roles)}] '{role}' 검색 중...")
+            config = FilterConfig(
+                roles=[role],
+                exclude_keywords=search_config.exclude_requirements,
+                career_level=search_config.career_level,
+                deadline_active_only=True,
+            )
+            # Samsung은 첫 번째에만 주입
+            sc = samsung_pool if i == 0 else []
+            all_candidates.extend(agent.run(config, samsung_candidates=sc))
+
+        # 중복 제거 (회사+공고제목 기준)
+        seen = set()
+        unique = []
+        for candidate in all_candidates:
+            key = (candidate.company, candidate.role[:40])
+            if key not in seen:
+                seen.add(key)
+                unique.append(candidate)
+
+        passed = [c for c in unique if c.passed]
+        # 타겟 기업 우선 → 마감일 순 정렬
+        target_set = {t.casefold() for t in search_config.target_companies}
+        def sort_key(c):
+            is_target = any(t in c.company.casefold() for t in target_set)
+            return (not is_target, c.deadline)
+
+        print(f"\n통과 공고: {len(passed)}개\n")
+        for c in sorted(passed, key=sort_key):
+            tag = "★" if any(t in c.company.casefold() for t in target_set) else " "
+            print(f"{tag}[{c.source}] {c.company} — {c.role[:60]}")
+            print(f"  마감: {c.deadline} | {c.source_url}")
+        sys.exit(0)
+
+    if args.discover:
+        from agents.discovery_agent import DiscoveryAgent
+        from core.models import FilterConfig
+
+        config = FilterConfig(
+            companies=[args.company] if args.company else [],
+            roles=[args.role] if args.role else [],
+            exclude_keywords=args.exclude,
+            include_keywords=args.include_kw,
+        )
+        agent = DiscoveryAgent()
+        candidates = agent.run(config)
+
+        passed = [c for c in candidates if c.passed]
+        filtered = [c for c in candidates if not c.passed]
+        print(f"\n통과 공고: {len(passed)}개 / 제외: {len(filtered)}개\n")
+        for c in passed:
+            print(f"  [{c.source}] {c.company} — {c.role}")
+            print(f"    마감: {c.deadline} | URL: {c.source_url}")
         sys.exit(0)
 
     if not args.company or not args.role:
