@@ -18,32 +18,37 @@
 | `harness` | `~/projects/harness/` |
 | `mlb-stats` | `~/projects/mlb-stats/` |
 | `self` | `~/projects/self/` |
-| `job-assistant` | `~/projects/self/job_assistant/` |
+| `job-assistant` | `~/projects/job_assistant/` |
 | `lm` | `~/projects/lm/` |
 
 ---
 
 ## 2. 역할 정의
 
-| 단어 | 의미 |
-|------|------|
-| `머리` | Claude Code — 설계, 판단, 조율 |
-| `손` | Codex CLI (`gpt-5.3-codex`) — 파일 작성, 수정, 실행 |
+| 단어 | 의미 | 모델 |
+|------|------|------|
+| `머리` | Claude Code — 설계, 판단, 조율 | Sonnet 4.6 |
+| `구현손` | Codex CLI — 코드 구현, 파일 수정, 실행 | gpt-5.4 (extra high) |
 
 ---
 
 ## 3. Team Agents
 
-구조: `머리 (Claude Code)` → `손 (Codex CLI)`
+구조: `머리 (Claude Code)` → `구현손 (Codex)`
 
-**손 호출 명령어:**
+**구현손 호출:**
 ```bash
 codex exec --full-auto -C /path/to/project "작업 지시"
+# config: gpt-5.4, reasoning_effort=high
 ```
 
-**인증**: ChatGPT 로그인 필요 (`codex login` → 브라우저 OAuth)
-- API 키 방식은 `gpt-5.3-codex` 접근 불가
-- 캐시 꼬임 시: `rm ~/.codex/models_cache.json` 후 재실행
+**분기 기준:**
+- 코드 구현 / 파일 수정 / 실행 → 구현손(Codex)
+- 설계·판단·검증·리서치 → 머리(Claude)
+
+**인증:**
+- Codex: ChatGPT 로그인 (`codex login` → 브라우저 OAuth)
+- Codex 캐시 꼬임 시: `rm ~/.codex/models_cache.json` 후 재실행
 
 **상세 패턴:**
 → `~/projects/usegit/patterns/team-agents-workflow.md`
