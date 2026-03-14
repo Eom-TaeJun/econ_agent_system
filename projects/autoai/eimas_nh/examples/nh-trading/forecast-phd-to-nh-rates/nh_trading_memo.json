@@ -1,0 +1,272 @@
+{
+  "metadata": {
+    "view_name": "NHTradingDeskMemoV0",
+    "view_version": "0.1.0",
+    "generated_at": "2026-03-14T09:00:00",
+    "as_of": "2026-03-14T09:00:00",
+    "schema_version": "nh-sample-0.1.0",
+    "run_mode": "unknown",
+    "source_artifact": "EIMASResult",
+    "target_company": "NH Investment & Securities",
+    "target_role": "Trading"
+  },
+  "market_context": {
+    "regime": "Transition",
+    "trend": "Policy repricing watch",
+    "volatility": "Elevated",
+    "risk_score": 47.0,
+    "risk_level": "MEDIUM",
+    "confidence": 0.67,
+    "vix_current": 19.2,
+    "net_liquidity": 5850.0,
+    "treasury_2y": 4.18,
+    "treasury_10y": 4.05,
+    "spread_10y2y": -0.13,
+    "liquidity_regime": "Tighter than neutral",
+    "curve_status": "Inverted but easing",
+    "rates_focus": "US policy path -> KR curve / FICC interpretation"
+  },
+  "desk_view": {
+    "question": "How should the NH rates/FICC desk respond when market-implied policy certainty stays too tight despite elevated volatility and bond-market stress signals?",
+    "final_recommendation": "HOLD",
+    "summary_message": "Policy-path certainty still looks too tight for an NH rates/FICC desk to trust without wider scenario bands and explicit liquidity handoff.",
+    "thesis": "The research suggests the market often gets the direction right but understates the distribution width, so NH should widen KR curve scenario bands before trusting front-end pricing.",
+    "base_case": "If policy repricing remains orderly, the desk can use wider scenario bands and bond-volatility signals to interpret KR duration and curve moves without overcommitting to a single path.",
+    "risk_case": "If VIX, MOVE, or foreign futures flows re-accelerate, front-end certainty can break quickly and force a sharper KR curve repricing than point forecasts imply.",
+    "desk_focus": "Rates / bonds / FICC first, data analysis as support rather than identity.",
+    "recent_signal_alignment": [
+      "strategy_over_raw_prediction",
+      "bond_price_discovery",
+      "policy_to_curve_translation",
+      "customer_readable_risk_translation"
+    ],
+    "events_detected": [
+      {
+        "type": "Density calibration",
+        "description": "Immediate-horizon 80% coverage fell to 13.3%, indicating severe overconfidence in policy-path pricing."
+      },
+      {
+        "type": "Information flow",
+        "description": "MOVE led rate-expectation variance at 2-3 day lags, pointing to bond-market leadership."
+      },
+      {
+        "type": "Macro catalyst",
+        "description": "NFP caused the largest repricing impulse with abs_ratio 3.87 across the research sample."
+      }
+    ],
+    "information_flow": {
+      "lead_signal": "MOVE -> FedWatch variance at 2-3 day lags",
+      "macro_event_priority": "NFP repricing > CPI within the research window",
+      "desk_translation": "Treat Treasury-vol shocks as an early warning for KR curve repricing risk."
+    },
+    "institutional_analysis": {
+      "nh_targeting": "Rates/FICC desk memo for KR curve interpretation and handoff",
+      "nh_public_signal_alignment": [
+        "outlook_and_response_strategy",
+        "bond_price_discovery",
+        "policy_to_curve_translation",
+        "customer_readable_bond_language"
+      ],
+      "candidate_story": "Translate research on market overconfidence into a bounded desk memo instead of a generic forecasting or AI demo."
+    },
+    "fomc_analysis": {
+      "paper_title": "Distributional Overconfidence in FOMC Rate Expectations",
+      "core_finding": "Point forecasts were accurate, but density forecasts were structurally too tight.",
+      "coverage_80_immediate": 0.133,
+      "vix_beta": -0.0171,
+      "lasso_cv_r2": 0.012,
+      "bond_market_lead": "MOVE Granger-led expectation variance",
+      "news_catalyst": "NFP abs_ratio 3.87"
+    },
+    "scenario_watchlist": [
+      "Check whether front-end pricing is narrower than the realized event distribution again.",
+      "Treat MOVE spikes as an early warning for KR curve stress rather than a lagging confirmation.",
+      "Watch NFP-class macro releases and foreign futures positioning for fast repricing.",
+      "Escalate to human review before turning the memo into product or sales language."
+    ],
+    "cross_asset_ready": true
+  },
+  "execution_risk": {
+    "market_structure_ready": false,
+    "warnings": [
+      "FedWatch density intervals stayed too narrow near FOMC meetings; widen scenario bands before desk reuse.",
+      "When VIX rises, overconfidence can deepen and curve repricing can accelerate.",
+      "Foreign futures flow and BOJ/BOK policy tone can reopen front-end volatility quickly."
+    ],
+    "approval_status": {
+      "status": "pending",
+      "owner": "human-desk-review"
+    },
+    "failsafe_status": {},
+    "handoff_required": true,
+    "handoff_reason": "The sample memo is intentionally bounded: it informs rates/FICC interpretation, but live execution, curve positioning, and customer translation still need human desk review.",
+    "product_risk_focus": [
+      "liquidity",
+      "margin",
+      "forced_liquidation"
+    ],
+    "rates_risk_focus": [
+      "duration_shock",
+      "curve_repricing",
+      "front_end_rate_surprise",
+      "basis_or_liquidity_gap"
+    ]
+  },
+  "evidence": {
+    "fact_check_grade": "A-",
+    "whitening_summary": "Sample memo uses statistics extracted from paper_v2 and maps them to recent NH Trading/FICC public signals. No live execution or market data refresh is attached.",
+    "audit_metadata": {
+      "data_as_of": "2026-03-14T09:00:00",
+      "scenario_id": "forecast-phd-to-nh-rates",
+      "source_mode": "forecast_phd_bridge",
+      "source_bundle": [
+        "/home/tj/projects/forecast/phd/paper_v2.md",
+        "/home/tj/projects/자기소개서/NH투자증권_Trading_현업조사_2026Q1.md"
+      ],
+      "target_memo": "NHTradingDeskMemoV0"
+    },
+    "source_gap_notes": [
+      "This sample bridges local forecast/phd research into an NH-style memo; it is not a live NH desk report.",
+      "Recent NH public signals are referenced from the local Trading field-research memo rather than direct live feeds."
+    ],
+    "recent_public_signals": [
+      "2025-11 NH RESEARCH FORUM emphasized outlook and response strategy across bonds and FICC.",
+      "2025-12 NH remained a bond and CP final quote yield reporter into 2026 H1.",
+      "2026-01 to 2026-02 NH public rates commentary focused on policy path, curve, liquidity, and sentiment.",
+      "2026-01 NH translated bond-market judgment into customer language via a government-bond special sale."
+    ]
+  },
+  "role_profile_briefs": {
+    "finance-ai-it": {
+      "name": "finance-ai-it",
+      "audience": "은행·증권 AI/데이터·디지털 직무",
+      "candidate_positioning": "금융 도메인을 이해하고, 정책·금리 신호를 검증 가능한 내부 메모와 AI 워크플로로 바꾸는 사람",
+      "project_translation": "정책/금리 이벤트를 기대분포, 근거, 승인 상태까지 포함한 내부 코파일럿 산출물로 바꾸는 금융형 AI 시스템",
+      "primary_value": "내부 업무 자동화, 연구 생산성, 통제 가능한 결과물",
+      "resume_focus": [
+        "RAG/agent보다 evidence와 guardrail을 우선한 설계",
+        "정책·금리 해석을 memo artifact로 표준화",
+        "profile, schema, tests로 실행 경계를 고정"
+      ],
+      "interview_focus": [
+        "왜 투자 추천기 대신 내부 메모 코파일럿으로 좁혔는가",
+        "금융기관에서 approval, failsafe, audit를 어떻게 다뤘는가",
+        "paper_v2의 calibration 문제를 시스템 기능으로 어떻게 옮겼는가"
+      ],
+      "emphasis_sections": [
+        "policy_view",
+        "recommendation",
+        "evidence"
+      ],
+      "anti_pitch": [
+        "자동매매",
+        "범용 챗봇",
+        "화려한 멀티에이전트 데모"
+      ],
+      "memo_hook": "정책/금리 이벤트를 기대분포, 근거, 승인 상태까지 포함한 내부 코파일럿 산출물로 바꾸는 금융형 AI 시스템",
+      "control_story": {
+        "handoff_required": false,
+        "approval_state": "unknown"
+      }
+    },
+    "enterprise-strategy-it": {
+      "name": "enterprise-strategy-it",
+      "audience": "대기업 IT·전략·재무·IR 인접 직무",
+      "candidate_positioning": "거시·금리 변화를 사업 환경과 의사결정 맥락으로 번역하는 business-facing AI/데이터 빌더",
+      "project_translation": "정책·금리 변화가 자금조달, 투자, IR, 전략 판단에 어떤 의미를 가지는지 정리하는 내부 메모 시스템",
+      "primary_value": "경영 판단 보조, 외부 환경 해석, 실무형 데이터 도구",
+      "resume_focus": [
+        "거시 이벤트를 경영/전략 질문으로 다시 번역한 구조",
+        "불확실성 자체를 메시지에 포함한 의사결정 보조 설계",
+        "한 프로젝트를 여러 business context로 재사용할 수 있는 packaging"
+      ],
+      "interview_focus": [
+        "정책 변화가 사업 의사결정에 미치는 영향 해석",
+        "기술 데모가 아니라 실제 내부 사용자 관점으로 설계한 이유",
+        "금융 메모 구조를 재무/전략/IR 문맥에 어떻게 전환할 수 있는가"
+      ],
+      "emphasis_sections": [
+        "macro_context",
+        "market_context",
+        "policy_view"
+      ],
+      "anti_pitch": [
+        "트레이딩 엔진",
+        "고빈도 전략",
+        "크립토 데모"
+      ],
+      "memo_hook": "정책·금리 변화가 자금조달, 투자, IR, 전략 판단에 어떤 의미를 가지는지 정리하는 내부 메모 시스템",
+      "control_story": {
+        "handoff_required": false,
+        "approval_state": "unknown"
+      }
+    },
+    "business-risk-sales": {
+      "name": "business-risk-sales",
+      "audience": "캐피탈·영업·리스크·재무/경영관리 직무",
+      "candidate_positioning": "시장 변화와 금리 환경을 고객·거래처·손익 관점의 메모로 바꿀 수 있는 데이터 기반 실무형 인재",
+      "project_translation": "정책/금리 변화가 시장 대응, 거래처 리스크, 손익 계획에 어떤 함의를 가지는지 빠르게 정리하는 내부 보조 도구",
+      "primary_value": "시장 대응, 리스크 헷지, 성과관리 보조",
+      "resume_focus": [
+        "시장 신호를 영업/리스크 언어로 번역한 경험",
+        "복잡한 경제 정보를 현업 메모로 축약한 구조",
+        "근거와 handoff를 남겨 실무 재사용성을 높인 방식"
+      ],
+      "interview_focus": [
+        "정책 변화가 고객/거래처 판단에 주는 영향",
+        "결과를 현업이 바로 읽을 수 있게 단순화한 기준",
+        "AI보다 시장 해석과 실행가능한 메모를 우선한 이유"
+      ],
+      "emphasis_sections": [
+        "macro_context",
+        "recommendation",
+        "evidence"
+      ],
+      "anti_pitch": [
+        "모델 성능 자랑",
+        "복잡한 AI 스택 설명",
+        "투자 수익률 중심 설명"
+      ],
+      "memo_hook": "정책/금리 변화가 시장 대응, 거래처 리스크, 손익 계획에 어떤 함의를 가지는지 빠르게 정리하는 내부 보조 도구",
+      "control_story": {
+        "handoff_required": false,
+        "approval_state": "unknown"
+      }
+    },
+    "securities-trading": {
+      "name": "securities-trading",
+      "audience": "증권사 Trading desk",
+      "candidate_positioning": "데이터분석 자체를 앞세우기보다, 금리와 채권 시장 이벤트를 해석하고 그 판단 근거를 통계와 데이터로 검증해 desk가 읽을 수 있는 FICC 메모로 구조화하는 사람",
+      "project_translation": "미국 금리 경로, 국내 금리커브, 유동성·실행 리스크를 함께 정리해 rates/FICC desk의 판단 품질을 높이는 내부 메모 코파일럿",
+      "primary_value": "금리/채권 해석, 커브 시나리오 정리, 실행/유동성 리스크 인식",
+      "resume_focus": [
+        "forecast의 확률/과신 검증을 채권/FICC 문맥으로 번역한 구조",
+        "EIMAS를 얇은 rates memo 산출물로 리팩터링한 제품 감각",
+        "금리 리스크와 handoff를 같이 남기는 리스크 중심 설계"
+      ],
+      "interview_focus": [
+        "왜 데이터분석보다 금리/채권 해석을 앞세우는가",
+        "미국 금리 변화와 국내 금리커브를 어떻게 연결해 보는가",
+        "자동매매가 아니라 rates/FICC memo로 좁힌 이유는 무엇인가"
+      ],
+      "emphasis_sections": [
+        "market_context",
+        "desk_view",
+        "execution_risk",
+        "evidence"
+      ],
+      "anti_pitch": [
+        "수익률 자랑",
+        "자동매매",
+        "크립토 과시",
+        "IT 개발자 자기소개",
+        "데이터분석가 자기소개"
+      ],
+      "memo_hook": "The research suggests the market often gets the direction right but understates the distribution width, so NH should widen KR curve scenario bands before trusting front-end pricing.",
+      "control_story": {
+        "handoff_required": false,
+        "approval_state": "pending"
+      }
+    }
+  }
+}
