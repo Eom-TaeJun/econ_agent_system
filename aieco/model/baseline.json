@@ -1,0 +1,38 @@
+{
+  "version": "2026-03",
+  "set_date": "2026-03-16",
+  "next_review": "2026-04-16",
+  "variables": {
+    "us_fed_rate": {
+      "current": "4.25-4.50%",
+      "forecast": "연내 1회 인하 (4.00-4.25%)",
+      "reasoning": "인플레 둔화 추세이나 관세 불확실성으로 신중 기조 유지",
+      "confidence": 0.5
+    },
+    "oil_wti": {
+      "current": "$67-70",
+      "forecast": "$65-80 박스권",
+      "reasoning": "호르무즈 해협 리스크 vs OPEC+ 감산 완화 가능성",
+      "confidence": 0.4
+    },
+    "usdkrw": {
+      "current": "1,450원대",
+      "forecast": "1,400-1,480 레인지",
+      "reasoning": "미국 금리 인하 지연 + 한국 성장 둔화로 원화 약세 압력 지속",
+      "confidence": 0.5
+    },
+    "korea_growth": {
+      "current": "1.5% (2025)",
+      "forecast": "1.5-2.0%",
+      "reasoning": "수출 회복세이나 내수 부진, 관세 리스크 상존",
+      "confidence": 0.4
+    },
+    "vix": {
+      "current": "18-22",
+      "forecast": "15-22 기본, 지정학 이벤트시 28+",
+      "reasoning": "관세 정책 불확실성이 변동성 하한을 높이는 중",
+      "confidence": 0.5
+    }
+  },
+  "notes": "첫 베이스라인. 수치는 대략적 감각 기준, 정밀 추정 아님. 매월 복기 후 업데이트."
+}

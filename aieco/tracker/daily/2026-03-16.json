@@ -1,0 +1,69 @@
+{
+  "date": "2026-03-16",
+  "news": [
+    {
+      "headline": "미국, 60개국 대상 Section 301 무역조사 착수",
+      "source": "CNBC",
+      "url": "https://www.cnbc.com/2026/03/13/us-section-301-probe-trade-trump-labor-practices.html",
+      "details": "USTR이 중국/EU/인도/멕시코 등 60개국에 강제노동 수입품 관련 조사 개시. 별도로 한국/일본/EU 등 16개국에 보조금·과잉생산 조사. 배경: 대법원 IEEPA 관세 위헌 판결 → 트럼프 Section 122 임시 10% 관세 + Section 301로 새 근거 마련 중"
+    },
+    {
+      "headline": "트럼프, 1.6조 달러 관세 수입 공백 메우기 위해 새 관세 추진",
+      "source": "Washington Times",
+      "url": "https://www.washingtontimes.com/news/2026/mar/14/new-tariffs-trump-seeks-close-16-trillion-revenue-gap/",
+      "details": "대법원 IEEPA 관세 위헌 후 Section 122(임시 10%) + Section 301(신규 조사)로 대체 관세 근거 확보 시도"
+    },
+    {
+      "headline": "중동 리스크 지속 + 유럽, 미국 러시아 석유제재 완화에 반발",
+      "source": "cliktoday",
+      "url": "https://www.cliktoday.com/2026/03/2026-03-06-today-news.html",
+      "details": "영국/독일/프랑스/노르웨이 등 트럼프 러시아 석유제재 완화에 반발. 중동발 에너지쇼크 → 물가 상승 + 공급망 마비 + 소비 위축 우려"
+    }
+  ],
+  "context": {
+    "us_tariff": "Section 122 임시 10% 관세 발효 중. Section 301 신규 조사로 추가 관세 근거 확보 시도",
+    "korea_exposure": "한국 16개국 보조금·과잉생산 조사 대상에 포함",
+    "energy": "중동 리스크 + 러시아 제재 이슈로 유가 불확실성"
+  },
+  "my_judgment": {
+    "risk_factors": ["trade_policy", "geopolitical"],
+    "one_line": "미 대법원 IEEPA 위헌으로 관세 근거가 흔들렸지만, 트럼프가 Section 301로 우회 중. 한국은 보조금 조사 대상이라 수출 불확실성 증가."
+  },
+  "path_trace": [
+    {
+      "name": "경로1: 무역 불확실성 → 수출 타격",
+      "chain": "Section 301 조사 → 한국 반도체/자동차/철강 추가 관세 가능성 → 수출기업 실적 불확실성 → 코스피 하방 압력",
+      "framework": "NX 감소 → Y=C+I+G+NX에서 Y 하락",
+      "direction": {"kospi": "negative", "confidence": 0.6}
+    },
+    {
+      "name": "경로2: 글로벌 무역위축 → 달러 강세",
+      "chain": "60개국 동시 조사 → 글로벌 교역 위축 우려 → 안전자산 선호(flight to safety) → 달러 강세 → 원화 약세",
+      "framework": "자본흐름: 위험회피 시 신흥국 자본유출 → 환율 상승",
+      "direction": {"usdkrw": "positive(원화약세)", "confidence": 0.6}
+    },
+    {
+      "name": "경로3: 관세 → 미국 인플레 → 금리 인하 지연",
+      "chain": "임시 10% 관세 → 미국 수입물가 상승 → CPI 상승 압력 → 연준 금리인하 지연 → 한미 금리차 유지 → 원화 약세 지속",
+      "framework": "피셔방정식: 명목금리 = 실질금리 + 기대인플레. 인플레 상승 시 명목금리 하방경직",
+      "direction": {"us_rate": "neutral(동결 장기화)", "usdkrw": "positive(원화약세)", "confidence": 0.5}
+    },
+    {
+      "name": "경로4: 중동 리스크 → 에너지 비용",
+      "chain": "중동 긴장 + 러시아 제재 갈등 → 유가 상승 압력 → 한국 경상수지 악화(에너지 순수입국) → 원화 추가 약세",
+      "framework": "경상수지 악화 → 외환수급 불균형 → 환율 상승. 코스트푸시 인플레이션 → 한은 금리인하 여력 축소",
+      "direction": {"oil": "positive(상승)", "usdkrw": "positive(원화약세)", "confidence": 0.5}
+    }
+  ],
+  "synthesis": {
+    "overall": "무역정책 불확실성 + 중동 에너지 리스크가 동시에 작용. 원화 약세 압력이 다중 경로에서 수렴하고 있음.",
+    "market_call": {
+      "usdkrw": {"direction": "상승(원화약세)", "range": "1,450-1,500", "confidence": 0.6},
+      "kospi": {"direction": "하락", "range": "2,450-2,550", "confidence": 0.5},
+      "oil_wti": {"direction": "상승 편향", "range": "$68-78", "confidence": 0.4}
+    },
+    "watch_point": "Section 301 조사 결과 발표 시점 + 4월 한국 총선 이후 정책 방향",
+    "what_could_be_wrong": "대법원 위헌 판결로 트럼프 관세 권한이 실질적으로 제한됐을 수 있음. Section 301도 법적 도전 가능성 → 관세 실현 확률이 생각보다 낮을 수 있다."
+  },
+  "review": null
+}
