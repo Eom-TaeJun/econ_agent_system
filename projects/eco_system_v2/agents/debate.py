@@ -79,7 +79,7 @@ class DebateAgent(BaseAgent):
             partial(
                 self._get_client().messages.create,
                 model=self._model,
-                max_tokens=512,
+                max_tokens=1024,
                 messages=[{"role": "user", "content": prompt}],
             ),
         )
@@ -101,15 +101,45 @@ class DebateAgent(BaseAgent):
 
 
 def _parse_json(text: str) -> dict:
+    """JSON 파싱. 코드블록 제거 → 정상 파싱 → 잘린 JSON 복구 → 정규식 추출 순."""
     cleaned = re.sub(r"^```(?:json)?\s*\n?", "", text.strip())
     cleaned = re.sub(r"\n?```\s*$", "", cleaned)
+
+    # 1차: 정상 파싱
     try:
         return json.loads(cleaned)
     except json.JSONDecodeError:
-        match = _JSON_PATTERN.search(text)
-        if match:
-            try:
-                return json.loads(match.group())
-            except json.JSONDecodeError:
-                return {}
-        return {}
+        pass
+
+    # 2차: { ... } 추출
+    match = _JSON_PATTERN.search(text)
+    if match:
+        try:
+            return json.loads(match.group())
+        except json.JSONDecodeError:
+            # 3차: 잘린 JSON 복구 시도 (닫는 괄호 추가)
+            partial = match.group()
+            for suffix in ['"}', '"}}'  , '"}'  ]:
+                try:
+                    return json.loads(partial + suffix)
+                except json.JSONDecodeError:
+                    continue
+
+    # 4차: 정규식으로 개별 필드 추출 (최후 수단)
+    result: dict = {}
+    sig_match = re.search(r'"signal"\s*:\s*"(BULLISH|NEUTRAL|BEARISH)"', text)
+    if sig_match:
+        result["signal"] = sig_match.group(1)
+    conf_match = re.search(r'"confidence"\s*:\s*([\d.]+)', text)
+    if conf_match:
+        result["confidence"] = float(conf_match.group(1))
+    rat_match = re.search(r'"rationale"\s*:\s*"([^"]*)', text)
+    if rat_match:
+        result["rationale"] = rat_match.group(1)
+    agr_match = re.search(r'"agreement_ratio"\s*:\s*([\d.]+)', text)
+    if agr_match:
+        result["agreement_ratio"] = float(agr_match.group(1))
+
+    if result:
+        logger.warning(f"[debate] JSON 파싱 실패 → 정규식 추출: {list(result.keys())}")
+    return result

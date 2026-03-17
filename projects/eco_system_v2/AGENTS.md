@@ -37,7 +37,7 @@ domain/ → stdlib만 (외부 의존성 절대 금지)
 
 ### ADR
 
-- **QuantAgent는 LLM 없이 순수 계산**: 객관적 정량 신호와 주관적 LLM 해석 분리. 빠르고, 저렴하고, 결정적(deterministic).
+- **QuantAgent는 LLM 없이 순수 계산**: 객관적 정량 신호와 주관적 LLM 해석 분리. 빠르고, 저렴하고, 결정적(deterministic). 레짐 + 리스크 + LASSO 예측 통합.
 - **DebateAgent는 순차 실행**: 다른 에이전트 신호를 context로 받아야 하므로 Phase 2에서 실행.
 
 ---
@@ -132,11 +132,16 @@ class BaseAgent(ABC):
 
 ## 7. 합의 알고리즘
 
-`domain/consensus.py` — `ConsensusService.compute(signals)`:
+`domain/consensus.py` — `ConsensusService.compute(signals)` → `(EconomicSignal, ConsensusBreakdown)`:
 
-1. 다수결로 대표 `Signal` 결정
-2. 대표 신호에 동의한 에이전트들의 `confidence` 평균
-3. 빈 리스트 → `NEUTRAL, confidence=0.0`
+**방법: 신뢰도 가중 투표**
+1. 각 에이전트의 `confidence`가 투표 가중치
+2. Signal별 가중 점수 합산 → 최고 점수 Signal 채택
+3. 마진 = (1위 - 2위) / 전체 → 결정의 확실성
+4. 최종 신뢰도 = 동의 에이전트 가중평균 × 마진 보정
+5. `ConsensusBreakdown`: 에이전트별 기여, 가중 점수, 마진, 설명 포함
+
+예: 신뢰도 90% BEARISH 1명 vs 신뢰도 50% BULLISH 2명 → BULLISH 승리하나 마진 3%, 신뢰도 34% (주의 필요)
 
 합의 로직은 **반드시 이 파일에만** 작성.
 

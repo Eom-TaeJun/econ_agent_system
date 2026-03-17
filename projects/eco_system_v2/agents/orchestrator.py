@@ -25,11 +25,14 @@ from agents.research import ResearchAgent
 from agents.quant import QuantAgent
 from agents.forecast import ForecastAgent
 from agents.debate import DebateAgent
-from domain.consensus import ConsensusService
+from domain.allocation import AllocationResult
+from domain.consensus import ConsensusBreakdown, ConsensusService
+from domain.forecast import LASSOForecast
 from domain.market_data import MarketData
 from domain.regime import RegimeResult
 from domain.risk import RiskMetrics
 from domain.signal import EconomicSignal
+from infrastructure.analysis import recommend_allocation
 
 logger = logging.getLogger(__name__)
 
@@ -45,6 +48,9 @@ class EcoResult:
         regime: RegimeResult | None = None,
         risk_metrics: RiskMetrics | None = None,
         debate_summary: str = "",
+        consensus_breakdown: ConsensusBreakdown | None = None,
+        lasso_forecast: LASSOForecast | None = None,
+        allocation: AllocationResult | None = None,
     ) -> None:
         self.date = str(date.today())
         self.consensus = consensus
@@ -53,6 +59,9 @@ class EcoResult:
         self.regime = regime
         self.risk_metrics = risk_metrics
         self.debate_summary = debate_summary
+        self.consensus_breakdown = consensus_breakdown
+        self.lasso_forecast = lasso_forecast
+        self.allocation = allocation
 
     def to_dict(self) -> dict:
         result = {
@@ -63,10 +72,16 @@ class EcoResult:
             "agent_signals": [s.to_dict() for s in self.agent_signals],
             "market_data": self.market_data.to_dict(),
         }
+        if self.consensus_breakdown:
+            result["consensus_breakdown"] = self.consensus_breakdown.to_dict()
         if self.regime:
             result["regime"] = self.regime.to_dict()
         if self.risk_metrics:
             result["risk_metrics"] = self.risk_metrics.to_dict()
+        if self.lasso_forecast:
+            result["lasso_forecast"] = self.lasso_forecast.to_dict()
+        if self.allocation:
+            result["allocation"] = self.allocation.to_dict()
         if self.debate_summary:
             result["debate_summary"] = self.debate_summary
         return result
@@ -115,11 +130,12 @@ class Orchestrator:
         """quick: AnalysisAgent만."""
         logger.info("[Orchestrator] quick 모드 — 1개 에이전트")
         signal = await self._analysis.run(market_data, context)
-        consensus = ConsensusService.compute([signal])
+        consensus, breakdown = ConsensusService.compute([signal])
         return EcoResult(
             consensus=consensus,
             agent_signals=[signal],
             market_data=market_data,
+            consensus_breakdown=breakdown,
         )
 
     async def _run_full(
@@ -158,14 +174,22 @@ class Orchestrator:
             except Exception as e:
                 logger.warning(f"[Orchestrator] Debate 실패: {e}")
 
-        consensus = ConsensusService.compute(valid)
+        consensus, breakdown = ConsensusService.compute(valid)
 
         regime = self._quant.regime
         risk_metrics = self._quant.risk_metrics
 
         logger.info(
             f"[Orchestrator] 합의: {consensus.signal.value} "
-            f"(conf={consensus.confidence:.0%})"
+            f"(conf={consensus.confidence:.0%}, 마진={breakdown.margin:.0%})"
+        )
+
+        # Phase 3: 포트폴리오 배분
+        allocation = recommend_allocation(
+            consensus=consensus,
+            regime=regime,
+            risk=risk_metrics,
+            lasso=self._quant.lasso_forecast,
         )
 
         return EcoResult(
@@ -175,6 +199,9 @@ class Orchestrator:
             regime=regime,
             risk_metrics=risk_metrics,
             debate_summary=debate_summary,
+            consensus_breakdown=breakdown,
+            lasso_forecast=self._quant.lasso_forecast,
+            allocation=allocation,
         )
 
     async def _run_forecast(
@@ -214,7 +241,20 @@ class Orchestrator:
             except Exception as e:
                 logger.warning(f"[Orchestrator] Debate 실패: {e}")
 
-        consensus = ConsensusService.compute(valid)
+        consensus, breakdown = ConsensusService.compute(valid)
+
+        logger.info(
+            f"[Orchestrator] 합의: {consensus.signal.value} "
+            f"(conf={consensus.confidence:.0%}, 마진={breakdown.margin:.0%})"
+        )
+
+        # Phase 3: 포트폴리오 배분
+        allocation = recommend_allocation(
+            consensus=consensus,
+            regime=self._quant.regime,
+            risk=self._quant.risk_metrics,
+            lasso=self._quant.lasso_forecast,
+        )
 
         return EcoResult(
             consensus=consensus,
@@ -223,6 +263,9 @@ class Orchestrator:
             regime=self._quant.regime,
             risk_metrics=self._quant.risk_metrics,
             debate_summary=debate_summary,
+            consensus_breakdown=breakdown,
+            lasso_forecast=self._quant.lasso_forecast,
+            allocation=allocation,
         )
 
     @staticmethod

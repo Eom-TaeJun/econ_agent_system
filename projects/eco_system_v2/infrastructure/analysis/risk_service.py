@@ -15,6 +15,7 @@ import math
 from domain.market_data import MarketData
 from domain.regime import MarketRegime, RegimeResult
 from domain.risk import RiskLevel, RiskMetrics
+from domain.thresholds import VIX_LOW, VIX_MID, VIX_HIGH, RISK_YIELD_SPREAD_INVERSION
 
 logger = logging.getLogger(__name__)
 
@@ -80,12 +81,14 @@ def _classify_risk_level(
     regime: RegimeResult | None,
     yield_spread: float = 0.0,
 ) -> RiskLevel:
-    """VIX + 레짐 + 수익률 곡선 스프레드로 리스크 수준 분류."""
-    if vix >= 30.0:
+    """VIX + 레짐 + 수익률 곡선 스프레드로 리스크 수준 분류.
+
+    임계값 근거는 domain/thresholds.py 참조.
+    """
+    if vix >= VIX_HIGH.value:
         return RiskLevel.EXTREME
-    if vix >= 22.0:
-        # 수익률 곡선 역전(10Y < FFR) → 경기침체 경고 → EXTREME
-        if yield_spread < -0.5:
+    if vix >= VIX_MID.value:
+        if yield_spread < RISK_YIELD_SPREAD_INVERSION.value:
             return RiskLevel.EXTREME
         return RiskLevel.HIGH
 
@@ -94,15 +97,15 @@ def _classify_risk_level(
         MarketRegime.BEAR_LOW_VOL,
         MarketRegime.BEAR_HIGH_VOL,
     ):
-        if vix >= 16.0:
+        if vix >= VIX_LOW.value:
             return RiskLevel.HIGH
         return RiskLevel.MEDIUM
 
     # 수익률 곡선 역전 단독 → 최소 MEDIUM
-    if yield_spread < -0.5:
+    if yield_spread < RISK_YIELD_SPREAD_INVERSION.value:
         return RiskLevel.MEDIUM
 
-    if vix >= 16.0:
+    if vix >= VIX_LOW.value:
         return RiskLevel.MEDIUM
     return RiskLevel.LOW
 

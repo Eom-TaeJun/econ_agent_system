@@ -106,11 +106,52 @@ def collect_extended_market(lookback_days: int = 252) -> dict[str, list[float]]:
         if not gold.empty:
             result["gold_price"] = float(gold["Close"].iloc[-1])
 
+        # 2년물 국채 수익률 (^IRX = 13주, 2YY=F 없으면 대용)
+        try:
+            tw = yf.Ticker("2YY=F").history(period="5d")
+            if not tw.empty:
+                result["treasury_2y"] = float(tw["Close"].iloc[-1])
+            else:
+                # fallback: 13-week T-bill rate
+                irx = yf.Ticker("^IRX").history(period="5d")
+                if not irx.empty:
+                    result["treasury_2y"] = float(irx["Close"].iloc[-1])
+        except Exception:
+            pass
+
+        # 원유 (WTI)
+        try:
+            oil = yf.Ticker("CL=F").history(period="5d")
+            if not oil.empty:
+                result["oil_price"] = float(oil["Close"].iloc[-1])
+        except Exception:
+            pass
+
+        # 구리
+        try:
+            copper = yf.Ticker("HG=F").history(period="5d")
+            if not copper.empty:
+                result["copper_price"] = float(copper["Close"].iloc[-1])
+        except Exception:
+            pass
+
+        # HYG (하이일드 채권 ETF — 신용 위험 프록시)
+        try:
+            hyg = yf.Ticker("HYG").history(period="5d")
+            if not hyg.empty:
+                result["hyg_price"] = float(hyg["Close"].iloc[-1])
+        except Exception:
+            pass
+
         logger.info(
             f"[yfinance] extended: SPX {len(result['spx_prices'])}일, "
             f"10Y={result['treasury_10y']:.2f}%, "
+            f"2Y={result.get('treasury_2y', 0):.2f}%, "
             f"DXY={result['dxy_index']:.1f}, "
-            f"Gold=${result['gold_price']:.0f}"
+            f"Gold=${result['gold_price']:.0f}, "
+            f"Oil=${result.get('oil_price', 0):.1f}, "
+            f"Copper=${result.get('copper_price', 0):.2f}, "
+            f"HYG=${result.get('hyg_price', 0):.1f}"
         )
 
     except Exception as e:

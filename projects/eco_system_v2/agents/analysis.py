@@ -65,7 +65,7 @@ class AnalysisAgent(BaseAgent):
             partial(
                 self._get_client().messages.create,
                 model=self._model,
-                max_tokens=512,
+                max_tokens=1024,
                 messages=[{"role": "user", "content": prompt}],
             ),
         )

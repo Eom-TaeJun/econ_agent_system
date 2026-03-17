@@ -51,15 +51,40 @@ main.py
 | `RiskMetrics` | frozen DC (VO) | `domain/risk.py` | 리스크 지표 (VaR, CVaR, MDD, 실현변동성) |
 | `HorizonType` | Enum | `domain/forecast.py` | 전망 시계: SHORT / MEDIUM / LONG |
 | `ForecastResult` | frozen DC (VO) | `domain/forecast.py` | 전망 결과 (동인, 리스크 요인 포함) |
+| `LASSOForecast` | frozen DC (VO) | `domain/forecast.py` | LASSO 정량 예측 (전방 수익률, R², 주요 동인) |
 | `DebateResult` | frozen DC (VO) | `domain/debate.py` | 토론 합의 결과 (도전, 종합 해석 포함) |
 | `ReportSection` | frozen DC (VO) | `domain/report.py` | 리포트 섹션 |
 | `AnalysisReport` | frozen DC (VO) | `domain/report.py` | 최종 분석 리포트 (to_markdown() 지원) |
+
+### 자산 배분 VO
+
+| 용어 | 타입 | 위치 | 정의 |
+|------|------|------|------|
+| `AssetClass` | Enum | `domain/allocation.py` | 자산 클래스: EQUITY / BOND / GOLD / CASH |
+| `AllocationAdjustment` | frozen DC (VO) | `domain/allocation.py` | 배분 조정 기록 (출처, 변화량, 사유) |
+| `AllocationResult` | frozen DC (VO) | `domain/allocation.py` | 배분 추천 결과 (비율, 전략명, 조정 이력, 설명) |
+
+### 트렌드 추적 VO
+
+| 용어 | 타입 | 위치 | 정의 |
+|------|------|------|------|
+| `Direction` | Enum | `domain/trend.py` | 신호 변화 방향: UPGRADED / DOWNGRADED / REVERSED / UNCHANGED |
+| `SignalChange` | frozen DC (VO) | `domain/trend.py` | 에이전트 하나의 이전→현재 신호 변화 |
+| `TrendSnapshot` | frozen DC (VO) | `domain/trend.py` | 과거 분석 하나의 스냅샷 |
+| `TrendComparison` | frozen DC (VO) | `domain/trend.py` | 현재 vs 직전 비교 (방향변화, 연속횟수, 에이전트별 변화, 설명) |
+
+### 합의 과정 VO
+
+| 용어 | 타입 | 위치 | 정의 |
+|------|------|------|------|
+| `AgentContribution` | frozen DC (VO) | `domain/consensus.py` | 개별 에이전트의 합의 기여 (가중치, 동의 여부) |
+| `ConsensusBreakdown` | frozen DC (VO) | `domain/consensus.py` | 합의 과정 분해: 가중 점수, 마진, 기여도, 설명 |
 
 ### 서비스 / 컨테이너
 
 | 용어 | 타입 | 위치 | 정의 |
 |------|------|------|------|
-| `ConsensusService` | Domain Service | `domain/consensus.py` | 다수결 + 가중 신뢰도 합의. 합의 로직은 **여기에만** 작성 |
+| `ConsensusService` | Domain Service | `domain/consensus.py` | 신뢰도 가중 투표 합의. 합의 로직은 **여기에만** 작성 |
 | `EcoResult` | 결과 컨테이너 | `agents/orchestrator.py` | 파이프라인 최종 결과: consensus + signals + market_data + regime + risk + debate |
 | `BaseAgent` | ABC | `agents/base.py` | 모든 에이전트 베이스. `execute()` 추상 + `run()` 재시도/타임아웃 |
 | `Orchestrator` | Hub | `agents/orchestrator.py` | 스포크 에이전트를 실행 후 ConsensusService로 합의 도출 |
@@ -69,12 +94,16 @@ main.py
 | 용어 | 위치 | 정의 |
 |------|------|------|
 | `collect_market()` | `infrastructure/collectors/yfinance_collector.py` | VIX + SPX → MarketData |
-| `collect_extended_market()` | `infrastructure/collectors/yfinance_collector.py` | SPX/VIX 시계열 + 10Y Treasury + DXY + Gold |
+| `collect_extended_market()` | `infrastructure/collectors/yfinance_collector.py` | SPX/VIX 시계열 + 10Y/2Y Treasury + DXY + Gold + Oil + Copper + HYG |
 | `collect_fed_rate()` | `infrastructure/collectors/fred_collector.py` | FRED → 연방기금금리 float |
 | `detect_regime()` | `infrastructure/analysis/regime_service.py` | GMM 3-State + MA 크로스오버 → RegimeResult |
 | `calculate_risk()` | `infrastructure/analysis/risk_service.py` | VIX + 가격 시리즈 → RiskMetrics |
 | `generate_report()` | `infrastructure/report/generator.py` | EcoResult dict → Claude → AnalysisReport |
 | `write_report()` | `infrastructure/report/writer.py` | AnalysisReport → MD/HTML 파일 출력 |
+| `forecast_with_lasso()` | `infrastructure/analysis/lasso_service.py` | 가격+VIX 시계열 → LASSO 20일 전방 수익률 예측 |
+| `recommend_allocation()` | `infrastructure/analysis/portfolio_service.py` | 합의+레짐+리스크+LASSO → 자산 클래스 배분 추천 |
+| `load_history()` | `infrastructure/persistence/history_reader.py` | outputs/eco_*.json → TrendSnapshot 리스트 |
+| `compare_with_history()` | `infrastructure/persistence/history_reader.py` | 현재 결과 vs 이력 → TrendComparison |
 
 ---
 
@@ -88,9 +117,15 @@ main.py
 | `spx_return_30d` | float | % | S&P500 30일 수익률 |
 | `fed_rate` | float | % | FEDFUNDS (연방기금금리) |
 | `treasury_10y` | float | % | 10년 국채 수익률 |
+| `treasury_2y` | float | % | 2년 국채 수익률 |
 | `dxy_index` | float | 지수 | 달러 인덱스 |
 | `gold_price` | float | USD | 금 가격 |
+| `oil_price` | float | USD | WTI 원유 가격 |
+| `copper_price` | float | USD/lb | 구리 가격 |
+| `hyg_price` | float | USD | HYG ETF (하이일드 채권, 신용 위험 프록시) |
 | `collected_at` | str | ISO 8601 | 수집 시각 |
+| `yield_spread_10y_2y` | property | % | 10Y-2Y 스프레드 (역전 시 음수) |
+| `yield_spread_10y_ffr` | property | % | 10Y-FFR 스프레드 |
 
 ### EconomicSignal
 | 필드 | 타입 | 설명 |
@@ -180,10 +215,14 @@ python main.py --quick --no-save
 
 ## 6. 합의 알고리즘
 
-`ConsensusService.compute(signals)`:
-1. 다수결로 대표 `Signal` 결정
-2. 대표 신호에 동의한 에이전트들의 `confidence` 평균
-3. 빈 리스트 → `NEUTRAL, confidence=0.0`
+`ConsensusService.compute(signals)` → `(EconomicSignal, ConsensusBreakdown)`:
+
+1. **신뢰도 가중 투표**: 각 에이전트의 confidence가 투표 가중치
+2. Signal별 가중 점수 합산 → 최고 점수 Signal 채택
+3. **마진 계산**: (1위 점수 - 2위 점수) / 전체 점수 → 결정의 확실성
+4. **최종 신뢰도**: 동의 에이전트 가중평균 × 마진 보정 계수
+5. **ConsensusBreakdown**: 에이전트별 기여, 점수, 마진, 납득 가능한 설명 포함
+6. 빈 리스트 → `NEUTRAL, confidence=0.0`
 
 ---
 

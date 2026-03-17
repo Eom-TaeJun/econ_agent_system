@@ -27,7 +27,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from config import config
 from infrastructure.collectors import collect_market, collect_extended_market, collect_fed_rate
-from infrastructure.persistence import write, write_portfolio
+from infrastructure.persistence import write, write_portfolio, compare_with_history
 from infrastructure.profile_loader import load_profile
 from agents.orchestrator import Orchestrator
 from domain.market_data import MarketData
@@ -96,8 +96,12 @@ async def _run(args: argparse.Namespace) -> dict:
         vix_series = extended.get("vix_prices", []) or None
         extra_fields = {
             "treasury_10y": extended.get("treasury_10y", 0.0),
+            "treasury_2y": extended.get("treasury_2y", 0.0),
             "dxy_index": extended.get("dxy_index", 0.0),
             "gold_price": extended.get("gold_price", 0.0),
+            "oil_price": extended.get("oil_price", 0.0),
+            "copper_price": extended.get("copper_price", 0.0),
+            "hyg_price": extended.get("hyg_price", 0.0),
         }
 
     market_data = MarketData(
@@ -131,9 +135,9 @@ async def _run(args: argparse.Namespace) -> dict:
     logger.info("=== Phase 3: 결과 ===")
     result_dict = result.to_dict()
 
-    print("\n" + "=" * 50)
+    print("\n" + "=" * 60)
     if profile:
-        print(f"대상     : {profile.company} | {profile.role}")
+        print(f"대상       : {profile.company} | {profile.role}")
     print(f"모드       : {mode_name}")
     print(f"합의 신호  : {result_dict['consensus_signal']}")
     print(f"신뢰도     : {result_dict['consensus_confidence']:.0%}")
@@ -142,9 +146,23 @@ async def _run(args: argparse.Namespace) -> dict:
         print(f"레짐       : {result.regime.regime.value} (conf={result.regime.confidence:.0%})")
     if result.risk_metrics:
         print(f"리스크     : {result.risk_metrics.risk_level.value}")
+    if result.lasso_forecast:
+        lf = result.lasso_forecast
+        print(f"LASSO 예측 : {lf.predicted_return:+.2f}% → {lf.signal.value} (R²={lf.r_squared:.3f})")
+    if result.allocation:
+        al = result.allocation
+        alloc_str = " | ".join(f"{k} {v:.0f}%" for k, v in al.allocations)
+        print(f"배분 추천  : {al.strategy_name} — {alloc_str}")
     if result.debate_summary:
         print(f"토론 요약  : {result.debate_summary[:150]}")
-    print("=" * 50 + "\n")
+
+    # 합의 과정 상세 출력
+    if result.consensus_breakdown:
+        bd = result.consensus_breakdown
+        print("-" * 60)
+        print("[합의 과정]")
+        print(bd.explanation)
+    print("=" * 60 + "\n")
 
     # 5. 저장
     if not args.no_save:
@@ -160,7 +178,16 @@ async def _run(args: argparse.Namespace) -> dict:
             )
             print(f"포트폴리오: {portfolio_path}")
 
-    # 6. 리포트 생성 (--report 플래그)
+    # 6. 트렌드 비교 (과거 결과 대비)
+    trend = compare_with_history(result_dict, config.OUTPUT_DIR)
+    if trend:
+        result_dict["trend"] = trend.to_dict()
+        print("-" * 60)
+        print("[트렌드 비교]")
+        print(trend.explanation)
+        print("-" * 60)
+
+    # 7. 리포트 생성 (--report 플래그)
     if args.report:
         logger.info("=== Phase 4: 리포트 생성 ===")
         from infrastructure.report import generate_report, write_report
