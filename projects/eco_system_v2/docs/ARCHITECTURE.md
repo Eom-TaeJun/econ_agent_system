@@ -60,6 +60,7 @@ eco_system_v2/
 └── docs/
     ├── ARCHITECTURE.md             ← 이 문서
     ├── HARNESS_DIRECTION.md        harness 방향성
+    ├── PROGRESS.md                 작업 상태 추적
     └── CLAUDE_SESSION_BRIEF.md     세션 브리핑
 ```
 
