@@ -53,6 +53,7 @@ cat outputs/eco_*.json
 | `main.py` | CLI 진입점: --quick / --full / --forecast / --report |
 | `outputs/` | 결과 JSON + 리포트 |
 | `.claude/` | harness: commands, agents, skills, hooks |
+| `docs/` | harness 방향성과 향후 architecture/progress 문서 위치 |
 
 ---
 
@@ -64,6 +65,24 @@ cat outputs/eco_*.json
 | `--full` | Analysis + Research + Quant → Debate | 병렬+순차 (~90s) |
 | `--forecast` | Analysis + Research + Quant + Forecast → Debate | full + 전망 |
 | `--report` | (추가 플래그) | 실행 후 MD/HTML 리포트 생성 |
+
+---
+
+# Harness Routing
+
+- harness 방향 문서: [`docs/HARNESS_DIRECTION.md`](./docs/HARNESS_DIRECTION.md)
+- Claude command: `/harness`
+
+큰 작업(새 Agent 추가, 구조 변경, report flow 변경) 전에는 먼저:
+
+1. `CLAUDE.md`
+2. `AGENTS.md`
+3. `DOMAIN.md`
+4. `docs/HARNESS_DIRECTION.md`
+
+를 읽는다.
+
+이 프로젝트는 이미 `.claude/skills/`, `.claude/hooks/`, `AGENTS.md`가 있으므로 **full harness 후보**다. 새 프레임워크를 얹기보다, 문서와 진행 상태를 repo에 더 남기는 방향으로 확장한다.
 
 ---
 
