@@ -1,0 +1,10 @@
+{
+  "hooks": [
+    {
+      "event": "PreToolUse",
+      "matcher": "Edit|Write",
+      "command": "bash .claude/hooks/scripts/domain-purity.sh \"$TOOL_INPUT\"",
+      "description": "domain/ 순수성 체크 — 외부 import 차단"
+    }
+  ]
+}

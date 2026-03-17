@@ -80,10 +80,15 @@ class ResearchAgent(BaseAgent):
 
 
 def _parse_json(text: str) -> dict:
+    cleaned = re.sub(r"^```(?:json)?\s*\n?", "", text.strip())
+    cleaned = re.sub(r"\n?```\s*$", "", cleaned)
     try:
-        return json.loads(text)
+        return json.loads(cleaned)
     except json.JSONDecodeError:
         match = _JSON_PATTERN.search(text)
         if match:
-            return json.loads(match.group())
+            try:
+                return json.loads(match.group())
+            except json.JSONDecodeError:
+                return {}
         return {}

@@ -3,11 +3,13 @@ main.py — eco_system_v2 CLI 진입점
 
 사용법:
     python main.py --quick                          # AnalysisAgent만, ~30초
-    python main.py --full                           # Research + Analysis 병렬, ~60초
+    python main.py --full                           # Analysis + Research + Quant → Debate, ~90초
+    python main.py --forecast                       # full + ForecastAgent 추가
+    python main.py --full --report                  # 실행 후 MD 리포트 생성
     python main.py --full --context "Fed pivot 가능성 높음"
 
     # 기업 타겟 분석 (job_assistant 연동)
-    python main.py --quick --load-profile /path/to/웨이브릿지_퀀트리서처_2026-02-26_analysis.json
+    python main.py --quick --load-profile /path/to/analysis.json
     python main.py --quick --load-profile /path/to/analysis.json --portfolio
 """
 
@@ -24,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 
 from config import config
-from infrastructure.collectors import collect_market, collect_fed_rate
+from infrastructure.collectors import collect_market, collect_extended_market, collect_fed_rate
 from infrastructure.persistence import write, write_portfolio
 from infrastructure.profile_loader import load_profile
 from agents.orchestrator import Orchestrator
@@ -44,9 +46,11 @@ def _parse_args() -> argparse.Namespace:
     )
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--quick", action="store_true", help="AnalysisAgent만 실행 (~30s)")
-    mode.add_argument("--full", action="store_true", help="Research + Analysis 병렬 (~60s)")
+    mode.add_argument("--full", action="store_true", help="Analysis+Research+Quant→Debate (~90s)")
+    mode.add_argument("--forecast", action="store_true", help="full + ForecastAgent 추가")
     parser.add_argument("--context", default="", help="추가 컨텍스트 (자유 텍스트)")
     parser.add_argument("--no-save", action="store_true", help="JSON 저장 건너뜀")
+    parser.add_argument("--report", action="store_true", help="MD/HTML 리포트 생성")
     parser.add_argument(
         "--load-profile",
         metavar="PATH",
@@ -62,7 +66,8 @@ def _parse_args() -> argparse.Namespace:
 
 
 async def _run(args: argparse.Namespace) -> dict:
-    quick = args.quick or (not args.full)  # 기본값은 quick
+    quick = args.quick or (not args.full and not args.forecast)
+    is_forecast = args.forecast
 
     # 0. 프로필 로드 (있을 경우)
     profile = None
@@ -80,16 +85,33 @@ async def _run(args: argparse.Namespace) -> dict:
     logger.info("=== Phase 1: 데이터 수집 ===")
     market_base = collect_market()
     fed_rate = collect_fed_rate()
+
+    # full/forecast 모드: 확장 데이터 수집 (레짐/리스크용)
+    price_series = None
+    vix_series = None
+    extra_fields = {}
+    if not quick:
+        extended = collect_extended_market()
+        price_series = extended.get("spx_prices", []) or None
+        vix_series = extended.get("vix_prices", []) or None
+        extra_fields = {
+            "treasury_10y": extended.get("treasury_10y", 0.0),
+            "dxy_index": extended.get("dxy_index", 0.0),
+            "gold_price": extended.get("gold_price", 0.0),
+        }
+
     market_data = MarketData(
         vix_current=market_base.vix_current,
         vix_30d_avg=market_base.vix_30d_avg,
         spx_return_30d=market_base.spx_return_30d,
         fed_rate=fed_rate,
+        **extra_fields,
     )
     logger.info(f"수집 완료: {market_data.to_prompt_context()}")
 
     # 3. 에이전트 분석 (Phase 2)
-    logger.info(f"=== Phase 2: 분석 ({'quick' if quick else 'full'} 모드) ===")
+    mode_name = "forecast" if is_forecast else ("quick" if quick else "full")
+    logger.info(f"=== Phase 2: 분석 ({mode_name} 모드) ===")
     orchestrator = Orchestrator(
         anthropic_api_key=config.ANTHROPIC_API_KEY,
         perplexity_api_key=config.PERPLEXITY_API_KEY,
@@ -100,6 +122,9 @@ async def _run(args: argparse.Namespace) -> dict:
         market_data=market_data,
         context=context,
         quick=quick,
+        forecast=is_forecast,
+        price_series=price_series,
+        vix_series=vix_series,
     )
 
     # 4. 결과 출력 (Phase 3)
@@ -109,9 +134,16 @@ async def _run(args: argparse.Namespace) -> dict:
     print("\n" + "=" * 50)
     if profile:
         print(f"대상     : {profile.company} | {profile.role}")
+    print(f"모드       : {mode_name}")
     print(f"합의 신호  : {result_dict['consensus_signal']}")
     print(f"신뢰도     : {result_dict['consensus_confidence']:.0%}")
     print(f"근거       : {result_dict['consensus_rationale']}")
+    if result.regime:
+        print(f"레짐       : {result.regime.regime.value} (conf={result.regime.confidence:.0%})")
+    if result.risk_metrics:
+        print(f"리스크     : {result.risk_metrics.risk_level.value}")
+    if result.debate_summary:
+        print(f"토론 요약  : {result.debate_summary[:150]}")
     print("=" * 50 + "\n")
 
     # 5. 저장
@@ -127,6 +159,23 @@ async def _run(args: argparse.Namespace) -> dict:
                 output_dir=str(Path(config.OUTPUT_DIR) / "portfolio"),
             )
             print(f"포트폴리오: {portfolio_path}")
+
+    # 6. 리포트 생성 (--report 플래그)
+    if args.report:
+        logger.info("=== Phase 4: 리포트 생성 ===")
+        from infrastructure.report import generate_report, write_report
+
+        report = await generate_report(
+            result_dict=result_dict,
+            api_key=config.ANTHROPIC_API_KEY,
+            model=config.CLAUDE_MODEL,
+        )
+        report_path = write_report(report, config.OUTPUT_DIR, fmt="md")
+        print(f"리포트: {report_path}")
+
+        # HTML도 생성
+        html_path = write_report(report, config.OUTPUT_DIR, fmt="html")
+        print(f"리포트 (HTML): {html_path}")
 
     return result_dict
 

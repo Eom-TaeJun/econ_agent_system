@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python main.py*)",
+      "Bash(python -m compileall*)",
+      "Bash(grep -r * domain/)",
+      "Read",
+      "Glob",
+      "Grep"
+    ],
+    "deny": []
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "command": "bash .claude/hooks/scripts/domain-purity.sh \"$TOOL_INPUT\""
+      }
+    ]
+  }
+}

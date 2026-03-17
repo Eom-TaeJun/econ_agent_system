@@ -26,15 +26,25 @@ class MarketData:
     vix_30d_avg: float = 0.0
     spx_return_30d: float = 0.0
     fed_rate: float = 0.0
+    treasury_10y: float = 0.0
+    dxy_index: float = 0.0
+    gold_price: float = 0.0
     collected_at: str = field(default_factory=lambda: datetime.now().isoformat())
 
     def to_prompt_context(self) -> str:
         """에이전트 프롬프트에 삽입할 텍스트 요약"""
-        return (
-            f"VIX: {self.vix_current:.1f} (30d avg {self.vix_30d_avg:.1f}), "
-            f"S&P500 30d return: {self.spx_return_30d:+.1f}%, "
-            f"Fed Funds Rate: {self.fed_rate:.2f}%"
-        )
+        parts = [
+            f"VIX: {self.vix_current:.1f} (30d avg {self.vix_30d_avg:.1f})",
+            f"S&P500 30d return: {self.spx_return_30d:+.1f}%",
+            f"Fed Funds Rate: {self.fed_rate:.2f}%",
+        ]
+        if self.treasury_10y:
+            parts.append(f"10Y Treasury: {self.treasury_10y:.2f}%")
+        if self.dxy_index:
+            parts.append(f"DXY: {self.dxy_index:.1f}")
+        if self.gold_price:
+            parts.append(f"Gold: ${self.gold_price:.0f}")
+        return ", ".join(parts)
 
     def to_dict(self) -> dict:
         return {
@@ -42,5 +52,8 @@ class MarketData:
             "vix_30d_avg": self.vix_30d_avg,
             "spx_return_30d": self.spx_return_30d,
             "fed_rate": self.fed_rate,
+            "treasury_10y": self.treasury_10y,
+            "dxy_index": self.dxy_index,
+            "gold_price": self.gold_price,
             "collected_at": self.collected_at,
         }
