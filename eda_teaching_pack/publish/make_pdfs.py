@@ -3,6 +3,7 @@ EDA Teaching Pack — PDF 재생성 스크립트
 NanumGothic 폰트 사용, reportlab Platypus 구조
 """
 
+from pathlib import Path
 from reportlab.lib.pagesizes import A4
 from reportlab.lib import colors
 from reportlab.lib.units import mm
@@ -514,7 +515,7 @@ def build_03():
 
 if __name__ == "__main__":
     import os
-    os.chdir("/home/tj/eda_teaching_pack")
+    os.chdir(Path(__file__).resolve().parent.parent)
     build_01()
     build_02()
     build_03()
