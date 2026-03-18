@@ -55,6 +55,8 @@ domain/ → stdlib만 (외부 의존성 절대 금지)
 - `--context "텍스트"`: 에이전트 프롬프트에 추가 컨텍스트 주입
 - `--no-save`: JSON 저장 건너뜀
 - `--load-profile PATH --portfolio`: job_assistant 연동 포트폴리오 리포트
+- `--scorecard`: 과거 신호 적중률 평가 (에이전트 실행 없이 outputs/ 이력만 사용)
+- `--scorecard-horizon N`: 스코어카드 평가 기간 변경 (기본 20거래일)
 
 ---
 

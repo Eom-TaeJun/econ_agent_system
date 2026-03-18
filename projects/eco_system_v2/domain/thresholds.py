@@ -169,3 +169,12 @@ PORTFOLIO_LASSO_MAX_TILT = Threshold(5.0, "LASSO 최대 배분 조정", "[설계
 # --- LASSO 신호 임계값 ---
 LASSO_BULLISH_RETURN = Threshold(1.0, "LASSO 강세 임계", "[관행] 20일 +1% ≈ 연환산 +12% — SPX 장기 평균 수익률(~10%) 초과 수준")
 LASSO_BEARISH_RETURN = Threshold(-1.0, "LASSO 약세 임계", "[관행] 20일 -1% ≈ 연환산 -12% — 의미있는 하락 수준")
+
+
+# ============================================================================
+# 스코어카드 임계값
+# ============================================================================
+
+SCORECARD_HORIZON_DAYS = Threshold(20, "평가 기간 (거래일)", "[관행] 20거래일 ≈ 1역월")
+SCORECARD_BULLISH_THRESHOLD = Threshold(1.0, "BULLISH 적중 기준 (%)", "[관행] LASSO_BULLISH_RETURN과 동일")
+SCORECARD_BEARISH_THRESHOLD = Threshold(-1.0, "BEARISH 적중 기준 (%)", "[관행] LASSO_BEARISH_RETURN과 동일")

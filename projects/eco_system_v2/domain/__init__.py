@@ -7,6 +7,11 @@ from .risk import RiskLevel, RiskMetrics
 from .forecast import HorizonType, ForecastResult
 from .debate import DebateResult
 from .report import ReportSection, AnalysisReport
+from .scorecard import (
+    Outcome, SignalEvaluation, SourceMetrics, ScorecardReport,
+    CalibrationBucket, DirectionalBreakdown, MarketContextMetrics, ScorecardDiagnostics,
+    RelativePerformance, NarrativeAssessment,
+)
 
 __all__ = [
     "Signal", "EconomicSignal",
@@ -17,4 +22,7 @@ __all__ = [
     "HorizonType", "ForecastResult",
     "DebateResult",
     "ReportSection", "AnalysisReport",
+    "Outcome", "SignalEvaluation", "SourceMetrics", "ScorecardReport",
+    "CalibrationBucket", "DirectionalBreakdown", "MarketContextMetrics", "ScorecardDiagnostics",
+    "RelativePerformance", "NarrativeAssessment",
 ]

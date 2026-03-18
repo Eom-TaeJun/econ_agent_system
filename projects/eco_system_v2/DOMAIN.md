@@ -73,6 +73,19 @@ main.py
 | `TrendSnapshot` | frozen DC (VO) | `domain/trend.py` | 과거 분석 하나의 스냅샷 |
 | `TrendComparison` | frozen DC (VO) | `domain/trend.py` | 현재 vs 직전 비교 (방향변화, 연속횟수, 에이전트별 변화, 설명) |
 
+### 스코어카드 VO
+
+| 용어 | 타입 | 위치 | 정의 |
+|------|------|------|------|
+| `Outcome` | Enum | `domain/scorecard.py` | 신호 평가 결과: `HIT` / `MISS` / `PENDING` / `NO_DATA` |
+| `SignalEvaluation` | frozen DC (VO) | `domain/scorecard.py` | 개별 신호 1건의 평가 결과 (날짜, 소스, 신호, 실제수익률, 판정) |
+| `SourceMetrics` | frozen DC (VO) | `domain/scorecard.py` | 소스별 적중률 집계 (적중률, 신뢰도 가중 적중률) |
+| `CalibrationBucket` | frozen DC (VO) | `domain/scorecard.py` | 신뢰도 구간별 실제 적중률 — 교정(calibration) 분석용 |
+| `DirectionalBreakdown` | frozen DC (VO) | `domain/scorecard.py` | 방향별(BULLISH/BEARISH/NEUTRAL) 적중률 비대칭 분석 |
+| `MarketContextMetrics` | frozen DC (VO) | `domain/scorecard.py` | 시장 환경별(금리/VIX/레짐) 적중률 분석 |
+| `ScorecardDiagnostics` | frozen DC (VO) | `domain/scorecard.py` | 진단 종합: 교정, 방향 비대칭, 시장 환경, Brier Score, 경고 |
+| `ScorecardReport` | frozen DC (VO) | `domain/scorecard.py` | 스코어카드 전체 리포트 (메트릭스 + 진단) |
+
 ### 합의 과정 VO
 
 | 용어 | 타입 | 위치 | 정의 |
@@ -104,6 +117,7 @@ main.py
 | `recommend_allocation()` | `infrastructure/analysis/portfolio_service.py` | 합의+레짐+리스크+LASSO → 자산 클래스 배분 추천 |
 | `load_history()` | `infrastructure/persistence/history_reader.py` | outputs/eco_*.json → TrendSnapshot 리스트 |
 | `compare_with_history()` | `infrastructure/persistence/history_reader.py` | 현재 결과 vs 이력 → TrendComparison |
+| `evaluate_signals()` | `infrastructure/analysis/scorecard_service.py` | 과거 신호 vs SPX 실제 수익률 → ScorecardReport |
 
 ---
 
@@ -204,6 +218,7 @@ main.py
 | forecast | `python main.py --forecast` | Analysis + Research + Quant + Forecast → Debate | ~120초 |
 | +report | `--report` 플래그 추가 | 위 + Claude 리포트 생성 | +30초 |
 | +portfolio | `--load-profile PATH --portfolio` | 위 + 기업 타겟 포트폴리오 리포트 | 동일 |
+| scorecard | `python main.py --scorecard` | 없음 (과거 이력 평가) | ~10초 |
 
 ```bash
 python main.py --full --context "Fed pivot 가능성 높음"

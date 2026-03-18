@@ -20,6 +20,7 @@ import asyncio
 import json
 import logging
 import sys
+from datetime import datetime
 from pathlib import Path
 
 # 프로젝트 루트를 sys.path에 추가 (패키지 설치 없이 실행 가능)
@@ -48,6 +49,8 @@ def _parse_args() -> argparse.Namespace:
     mode.add_argument("--quick", action="store_true", help="AnalysisAgent만 실행 (~30s)")
     mode.add_argument("--full", action="store_true", help="Analysis+Research+Quant→Debate (~90s)")
     mode.add_argument("--forecast", action="store_true", help="full + ForecastAgent 추가")
+    mode.add_argument("--scorecard", action="store_true", help="과거 신호 적중률 평가")
+    parser.add_argument("--scorecard-horizon", type=int, default=None, help="스코어카드 평가 기간 (거래일, 기본 20)")
     parser.add_argument("--context", default="", help="추가 컨텍스트 (자유 텍스트)")
     parser.add_argument("--no-save", action="store_true", help="JSON 저장 건너뜀")
     parser.add_argument("--report", action="store_true", help="MD/HTML 리포트 생성")
@@ -207,8 +210,146 @@ async def _run(args: argparse.Namespace) -> dict:
     return result_dict
 
 
+def _run_scorecard(args: argparse.Namespace) -> None:
+    """스코어카드 실행 — asyncio 불필요."""
+    from infrastructure.analysis.scorecard_service import evaluate_signals
+
+    report = evaluate_signals(
+        output_dir=config.OUTPUT_DIR,
+        horizon_days=args.scorecard_horizon,
+    )
+
+    # 콘솔 출력
+    print()
+    print("=" * 70)
+    print("SIGNAL ACCOUNTABILITY SCORECARD")
+    if report.date_range[0]:
+        print(f"기간: {report.date_range[0]} ~ {report.date_range[1]}")
+    print(f"평가 기준: SPX {report.horizon_days} 거래일 수익률")
+    print(f"평가 완료: {report.total_evaluated}건 | 대기: {report.total_pending}건")
+    print("=" * 70)
+
+    if report.consensus_metrics:
+        cm = report.consensus_metrics
+        print()
+        print(f"[합의] 적중률 {cm.hit_rate:.0%} ({cm.hits}/{cm.total})")
+        print(f"       신뢰도 가중 적중률: {cm.confidence_weighted_hit_rate:.0%}")
+
+    if report.agent_metrics:
+        print()
+        print(f"{'에이전트':<12} {'적중률':>6} {'가중적중':>8} {'적중/전체':>9} {'적중신뢰':>8} {'미스신뢰':>8}")
+        print("-" * 60)
+        for m in report.agent_metrics:
+            print(
+                f"{m.source:<12} {m.hit_rate:>5.0%} {m.confidence_weighted_hit_rate:>7.0%} "
+                f"{m.hits:>4}/{m.total:<4} {m.avg_confidence_when_hit:>7.0%} {m.avg_confidence_when_miss:>7.0%}"
+            )
+
+    if report.best_agent or report.worst_agent:
+        print()
+        print(f"최고: {report.best_agent} | 최저: {report.worst_agent}")
+
+    # 진단 섹션
+    diag = report.diagnostics
+    if diag:
+        # 교정 분석
+        if diag.calibration:
+            print()
+            print("[교정 분석] 신뢰도 vs 실제 적중률")
+            print(f"{'구간':<14} {'건수':>4} {'적중률':>6} {'기대치':>6} {'갭':>8}")
+            print("-" * 44)
+            for b in diag.calibration:
+                lo, hi = b.confidence_range
+                gap_str = f"{b.calibration_gap:+.0%}p"
+                label = "과신" if b.calibration_gap < -0.1 else ("양호" if abs(b.calibration_gap) <= 0.1 else "과소신뢰")
+                print(
+                    f"{lo:.0%}-{hi:.0%}{'':>6} {b.total:>4} {b.actual_hit_rate:>5.0%} "
+                    f"{b.expected_confidence:>5.0%} {gap_str:>7} {label}"
+                )
+
+        # 방향별 분석
+        consensus_dir = [d for d in diag.directional if d.source == "consensus"]
+        if consensus_dir:
+            d = consensus_dir[0]
+            print()
+            print("[방향 비대칭]")
+            if d.bullish_total:
+                print(f"  BULLISH  적중 {d.bullish_hit_rate:.0%} ({d.bullish_hits}/{d.bullish_total})")
+            if d.bearish_total:
+                print(f"  BEARISH  적중 {d.bearish_hit_rate:.0%} ({d.bearish_hits}/{d.bearish_total})")
+            if d.neutral_total:
+                print(f"  NEUTRAL  적중 {d.neutral_hit_rate:.0%} ({d.neutral_hits}/{d.neutral_total})")
+            print(f"  주요 편향: {d.dominant_bias}")
+
+        # 시장 환경별
+        if diag.market_contexts:
+            print()
+            print("[시장 환경별 적중률]")
+            for mc in diag.market_contexts:
+                print(
+                    f"  {mc.context_label:<28} "
+                    f"적중 {mc.hit_rate:.0%} ({mc.hits}/{mc.total}) "
+                    f"평균수익 {mc.avg_return:+.2f}%"
+                )
+
+        # Brier Score
+        if diag.brier_score > 0:
+            print()
+            quality = "양호" if diag.brier_score < 0.15 else ("보통" if diag.brier_score < 0.25 else "불량")
+            print(f"[Brier Score] {diag.brier_score:.3f} ({quality})")
+
+        # 상대성과
+        if diag.relative_performance:
+            print()
+            print("[US vs 글로벌 상대성과]")
+            print(f"{'기간':<32} {'SPX':>7} {'EFA':>7} {'EEM':>7} {'DXY':>7} {'US-EFA':>7}  레짐")
+            print("-" * 90)
+            for rp in diag.relative_performance:
+                print(
+                    f"{rp.period_label:<32} {rp.spx_return:>+6.1f}% {rp.efa_return:>+6.1f}% "
+                    f"{rp.eem_return:>+6.1f}% {rp.dxy_change:>+6.1f}% {rp.us_vs_efa:>+6.1f}%  "
+                    f"{rp.regime_label}"
+                )
+
+        # 내러티브 평가
+        if diag.narratives:
+            print()
+            print("[거시 내러티브 평가]")
+            for n in diag.narratives:
+                verdict_mark = {"지지": "+", "약화": "~", "반박": "-", "불확실": "?"}.get(n.verdict, "?")
+                print(f"  [{verdict_mark}] {n.hypothesis}: {n.verdict}")
+                for ev in n.evidence:
+                    print(f"      {ev}")
+                print(f"      -> {n.signal_implication}")
+                print()
+
+        # 경고
+        if diag.warnings:
+            print("[경고]")
+            for w in diag.warnings:
+                print(f"  * {w}")
+
+    print()
+    print("=" * 70)
+    print()
+
+    # JSON 저장
+    if not args.no_save:
+        import json
+        output_path = Path(config.OUTPUT_DIR)
+        output_path.mkdir(parents=True, exist_ok=True)
+        filepath = output_path / f"scorecard_{datetime.now().strftime('%Y%m%d_%H%M%S')}.json"
+        with open(filepath, "w", encoding="utf-8") as f:
+            json.dump(report.to_dict(), f, ensure_ascii=False, indent=2)
+        print(f"저장 완료: {filepath}")
+
+
 def main() -> None:
     args = _parse_args()
+
+    if args.scorecard:
+        _run_scorecard(args)
+        return
 
     if args.portfolio and not args.load_profile:
         print("ERROR: --portfolio는 --load-profile과 함께 사용해야 합니다.")
