@@ -16,6 +16,7 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
+from scipy import stats as sp_stats
 
 warnings.filterwarnings("ignore")
 import matplotlib.font_manager as fm
@@ -125,7 +126,7 @@ def handle_missing(df: pd.DataFrame, method: str,
                 medians = out.groupby(group_cols)[col].transform("median")
                 out[col] = out[col].fillna(medians)
         # remaining non-numeric NaNs: forward fill then drop
-        out = out.fillna(method="ffill").dropna()
+        out = out.ffill().dropna()
     return out.reset_index(drop=True)
 
 
@@ -194,6 +195,32 @@ def main():
     baseline = summary_stats(df, TARGET)
     log(f"\n[Baseline] rows={baseline['rows']}, missing_cells={baseline['missing_cells']}, "
         f"mean={baseline['mean']}, median={baseline['median']}, IQR={baseline['iqr']}")
+
+    # Distribution diagnostics
+    target_series = df[TARGET].dropna()
+    skew_val = target_series.skew()
+    kurt_val = target_series.kurtosis()
+    shapiro_stat, shapiro_p = sp_stats.shapiro(target_series.sample(min(5000, len(target_series)),
+                                                                     random_state=RANDOM_SEED))
+    log(f"\n[분포 진단] skewness={skew_val:.3f}, kurtosis={kurt_val:.3f}")
+    log(f"  Shapiro-Wilk: W={shapiro_stat:.4f}, p={shapiro_p:.4e}")
+    log(f"  → {'정규 분포 가정 가능' if shapiro_p > 0.05 else '정규 분포 가정 기각 (비모수 검정 권장)'}")
+
+    # --- Fig 0: Q-Q plot ---
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5))
+    axes[0].hist(target_series, bins=HIST_BINS, color="steelblue", alpha=0.7, edgecolor="white")
+    axes[0].axvline(target_series.mean(), color="red", ls="--", label=f"mean={target_series.mean():.0f}")
+    axes[0].axvline(target_series.median(), color="orange", ls="--", label=f"median={target_series.median():.0f}")
+    axes[0].set_title(f"타깃 분포 (skew={skew_val:.2f}, kurt={kurt_val:.2f})")
+    axes[0].set_xlabel(TARGET)
+    axes[0].legend(fontsize=8)
+
+    sp_stats.probplot(target_series, dist="norm", plot=axes[1])
+    axes[1].set_title("Q-Q Plot (정규성 진단)")
+    fig.suptitle("Q1: 타깃 변수 분포 진단", fontsize=12)
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "00_distribution_diagnostics.png")
+    plt.close(fig)
 
     # ── Q2: Duplicate & Type Error Check ──
     log("\n" + "=" * 60)
@@ -271,6 +298,19 @@ def main():
     log(f"\n{compare.to_string()}")
     drop_loss = (1 - len(df_drop) / len(df_after_q2)) * 100
     log(f"drop 손실률: {drop_loss:.1f}%")
+
+    # Hypothesis test: 처리 전 vs group_median 분포 차이
+    before_vals = df_after_q2[TARGET].dropna()
+    gmed_vals = df_gmed[TARGET]
+    # 비정규 분포이므로 Mann-Whitney U 사용
+    mw_stat, mw_p = sp_stats.mannwhitneyu(before_vals, gmed_vals, alternative="two-sided")
+    # Effect size: Cohen's d
+    pooled_std = np.sqrt((before_vals.std()**2 + gmed_vals.std()**2) / 2)
+    cohens_d = (before_vals.mean() - gmed_vals.mean()) / pooled_std if pooled_std > 0 else 0
+    log(f"\n[가설 검정] 처리 전 vs group_median (Mann-Whitney U)")
+    log(f"  U={mw_stat:.1f}, p={mw_p:.4e}")
+    log(f"  Cohen's d={cohens_d:.3f} ({'무시' if abs(cohens_d)<0.2 else '소' if abs(cohens_d)<0.5 else '중' if abs(cohens_d)<0.8 else '대'})")
+    log(f"  → {'유의한 차이 있음' if mw_p < 0.05 else '유의한 차이 없음'} (α=0.05)")
 
     # --- Fig 3: Target histogram before/after ---
     fig, axes = plt.subplots(1, 3, figsize=(14, 4), sharey=True)
@@ -372,6 +412,16 @@ def main():
     log(f"\n{compare_out.to_string()}")
     remove_loss = (1 - len(df_out_remove) / len(df_work)) * 100
     log(f"remove 손실률: {remove_loss:.1f}%")
+
+    # Hypothesis test: 처리 전 vs cap
+    pre_out_vals = df_work[TARGET].dropna()
+    cap_vals = df_out_cap[TARGET]
+    mw_stat2, mw_p2 = sp_stats.mannwhitneyu(pre_out_vals, cap_vals, alternative="two-sided")
+    pooled_std2 = np.sqrt((pre_out_vals.std()**2 + cap_vals.std()**2) / 2)
+    cohens_d2 = (pre_out_vals.mean() - cap_vals.mean()) / pooled_std2 if pooled_std2 > 0 else 0
+    log(f"\n[가설 검정] 이상치 처리 전 vs cap (Mann-Whitney U)")
+    log(f"  U={mw_stat2:.1f}, p={mw_p2:.4e}")
+    log(f"  Cohen's d={cohens_d2:.3f} ({'무시' if abs(cohens_d2)<0.2 else '소' if abs(cohens_d2)<0.5 else '중' if abs(cohens_d2)<0.8 else '대'})")
 
     # --- Fig 6: Before/after boxplot (outlier treatment) ---
     fig, axes = plt.subplots(1, 3, figsize=(12, 4), sharey=True)
@@ -477,8 +527,18 @@ def main():
     # Correlation before/after
     corr_before = df_after_q2[weather_cols + [TARGET]].corr()[TARGET].drop(TARGET)
     corr_after = df_final[weather_cols + [TARGET]].corr()[TARGET].drop(TARGET)
-    corr_compare = pd.DataFrame({"처리 전": corr_before.round(3), "처리 후": corr_after.round(3)})
-    log(f"\n상관계수 비교:\n{corr_compare.to_string()}")
+    # 상관 유의성 검정 (p-value)
+    corr_pvals = {}
+    for col in weather_cols:
+        r, p = sp_stats.pearsonr(df_final[col].dropna(), df_final.loc[df_final[col].notna(), TARGET])
+        corr_pvals[col] = p
+    corr_compare = pd.DataFrame({
+        "처리 전": corr_before.round(3),
+        "처리 후": corr_after.round(3),
+        "p-value": pd.Series(corr_pvals).map(lambda x: f"{x:.2e}"),
+        "유의성": pd.Series(corr_pvals).map(lambda x: "***" if x < 0.001 else "**" if x < 0.01 else "*" if x < 0.05 else "ns"),
+    })
+    log(f"\n상관계수 비교 (유의성 포함):\n{corr_compare.to_string()}")
 
     # --- Fig 9a: Correlation heatmap (before vs after) ---
     fig, axes = plt.subplots(1, 2, figsize=(12, 5))
@@ -514,6 +574,21 @@ def main():
     fig.tight_layout()
     fig.savefig(OUT_DIR / "09b_weather_scatter.png")
     plt.close(fig)
+
+    # ── Q9 Supplement: Multicollinearity Check ──
+    log("\n[다중공선성 체크]")
+    inter_corr = df_final[weather_cols].corr()
+    high_pairs = []
+    for i, c1 in enumerate(weather_cols):
+        for c2 in weather_cols[i+1:]:
+            r_val = abs(inter_corr.loc[c1, c2])
+            if r_val > 0.8:
+                high_pairs.append((c1, c2, r_val))
+    if high_pairs:
+        for c1, c2, r_val in high_pairs:
+            log(f"  ⚠ {c1} ↔ {c2}: |r|={r_val:.3f} → 다중공선성 주의 (모델링 시 둘 중 하나 제거 또는 PCA 고려)")
+    else:
+        log("  변수 간 |r| > 0.8 쌍 없음")
 
     # ── Q10: Final Summary ──
     log("\n" + "=" * 60)
@@ -552,6 +627,97 @@ def main():
 [한계 1] 결측이 MNAR일 가능성을 완전히 배제하지 못함.
 [한계 2] 이상치 일부는 실제 이벤트(날씨/행사)일 수 있어 과도한 처리 위험 존재.
 """)
+
+    # ── Advanced A: PCA ──
+    log("\n" + "=" * 60)
+    log("심화 A: PCA — 차원 축소로 핵심 축 발견")
+    log("=" * 60)
+
+    from sklearn.preprocessing import StandardScaler
+    from sklearn.decomposition import PCA
+
+    pca_cols = ["Temperature", "Humidity", "WindSpeed", "Visibility", "DewPoint", "SolarRadiation"]
+    X_pca = df_final[pca_cols].dropna()
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X_pca)
+
+    pca = PCA()
+    pcs = pca.fit_transform(X_scaled)
+
+    evr = pca.explained_variance_ratio_
+    cumulative = evr.cumsum()
+    n_80 = int((cumulative >= 0.8).argmax()) + 1
+    log(f"설명 분산 비율: {[f'{v:.3f}' for v in evr]}")
+    log(f"누적 80% 달성 주성분 수: {n_80}")
+
+    # Loading interpretation
+    loadings = pd.DataFrame(pca.components_, columns=pca_cols,
+                            index=[f"PC{i+1}" for i in range(len(pca_cols))])
+    log(f"\n로딩 (주성분별 변수 기여도):\n{loadings.round(3).to_string()}")
+
+    # --- Fig 10a: Explained variance ---
+    fig, ax = plt.subplots(figsize=(8, 4))
+    ax.bar(range(1, len(evr) + 1), evr, color="steelblue", alpha=0.8, label="개별")
+    ax.plot(range(1, len(cumulative) + 1), cumulative, "ro-", label="누적")
+    ax.axhline(0.8, color="gray", ls="--", alpha=0.5, label="80%")
+    ax.set_xlabel("Principal Component")
+    ax.set_ylabel("Explained Variance Ratio")
+    ax.set_title(f"심화 A: PCA 설명 분산 비율 (80% at PC{n_80})")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "10a_pca_variance.png")
+    plt.close(fig)
+
+    # --- Fig 10b: PC1-PC2 scatter ---
+    demand_q = pd.qcut(df_final.loc[X_pca.index, TARGET], q=3, labels=["Low", "Mid", "High"])
+    fig, ax = plt.subplots(figsize=(8, 6))
+    for label, color in zip(["Low", "Mid", "High"], ["#3498db", "#f39c12", "#e74c3c"]):
+        mask = demand_q == label
+        ax.scatter(pcs[mask, 0], pcs[mask, 1], alpha=0.3, s=10, color=color, label=label)
+    ax.set_xlabel(f"PC1 ({evr[0]*100:.1f}%)")
+    ax.set_ylabel(f"PC2 ({evr[1]*100:.1f}%)")
+    ax.set_title("심화 A: PC1-PC2 산점도 (수요 레벨)")
+    ax.legend()
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "10b_pca_scatter.png")
+    plt.close(fig)
+
+    # ── Advanced B: Tree Feature Importance ──
+    log("\n" + "=" * 60)
+    log("심화 B: 트리 기반 변수 중요도 탐색")
+    log("=" * 60)
+
+    from sklearn.tree import DecisionTreeRegressor
+
+    tree_features = ["Hour", "Temperature", "Humidity", "WindSpeed", "Visibility",
+                     "DewPoint", "SolarRadiation", "Rainfall", "Snowfall", "IsWeekend"]
+    X_tree = df_final[tree_features]
+    y_tree = df_final[TARGET]
+
+    tree = DecisionTreeRegressor(max_depth=4, random_state=RANDOM_SEED)
+    tree.fit(X_tree, y_tree)
+
+    importances = pd.Series(tree.feature_importances_, index=tree_features).sort_values(ascending=False)
+    log(f"\n트리 변수 중요도:\n{importances.round(4).to_string()}")
+
+    # Compare with correlation ranking
+    corr_abs = df_final[tree_features + [TARGET]].corr()[TARGET].drop(TARGET).abs().sort_values(ascending=False)
+    rank_compare = pd.DataFrame({
+        "corr_rank": corr_abs.rank(ascending=False).astype(int),
+        "tree_rank": importances.rank(ascending=False).astype(int),
+        "|r|": corr_abs.round(3),
+        "tree_imp": importances.round(4),
+    }).sort_values("tree_rank")
+    log(f"\n상관 순위 vs 트리 순위 비교:\n{rank_compare.to_string()}")
+
+    # --- Fig 11: Tree feature importance ---
+    fig, ax = plt.subplots(figsize=(8, 5))
+    importances.sort_values().plot.barh(ax=ax, color="teal", alpha=0.8)
+    ax.set_xlabel("Feature Importance")
+    ax.set_title("심화 B: DecisionTree 변수 중요도 (max_depth=4)")
+    fig.tight_layout()
+    fig.savefig(OUT_DIR / "11_tree_feature_importance.png")
+    plt.close(fig)
 
     # ── Save summary comparison table as CSV ──
     all_compare = pd.DataFrame({
