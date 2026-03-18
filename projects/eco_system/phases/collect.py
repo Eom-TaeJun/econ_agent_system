@@ -71,10 +71,13 @@ def collect(profile: dict | None = None) -> dict[str, Any]:
             if series.empty:
                 continue
             data[f"{key}_current"] = float(series.iloc[-1])
+            # 22 거래일 ≈ 30 영업일 (연 252 거래일 / 12개월)
+            # 관례: 월간 수익률 산출 시 달력일이 아닌 거래일 기준
             if len(series) >= 22:
                 data[f"{key}_return_30d"] = float(
                     (series.iloc[-1] / series.iloc[-22] - 1) * 100
                 )
+            # 5 거래일 = 1주일 단기 평균 (일간 노이즈 평활)
             if len(series) >= 5:
                 data[f"{key}_5d_avg"] = float(series.tail(5).mean())
 
