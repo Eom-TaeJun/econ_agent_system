@@ -2,6 +2,8 @@
 
 지원서 작성 전에 회사와 직무를 같은 방식으로 해석하기 위한 기준 문서.
 
+반드시 `base/BASE_STRATEGY_QUESTIONS.md`와 함께 읽는다.
+
 ## 1. 목표
 
 지원동기를 감으로 쓰지 않는다.
@@ -21,6 +23,13 @@
 - 보도자료
 
 이 시그널을 바탕으로 회사가 어떤 문제를 중요하게 보는지와 어떤 사람을 원하고 있는지 해석한다.
+
+이때 반드시 `기본전략 질문`도 같이 답한다.
+
+- 최근 2025년 하반기 이후 시그널은 무엇인가
+- 이 회사가 다른 회사와 다르게 전면에 두는 사업과 방식은 무엇인가
+- 이 직무가 이 회사 안에서 실제로 쓰는 언어와 지표는 무엇인가
+- 왜 같은 업권 다른 회사가 아니라 이 회사의 이 직무인가
 
 ### 예외 경로
 
@@ -228,5 +237,5 @@
 1. `applications/<회사>/DECISION_MEMO.md`
 2. `applications/<회사>/JD_NOTES.md`
 3. `applications/<회사>/TARGET_COMPANY.md`
-4. `applications/<회사>/DRAFT_SELF_INTRO.md`
+4. `applications/<회사>/writer_pack/05_ACTIVE_DRAFT.txt`
 5. `applications/<회사>/REVISION_LOG.md`

@@ -29,16 +29,35 @@
 - 이름: forecast
 - 목적: CME FedWatch 확률 데이터를 바탕으로 FOMC 금리 기대를 검증 가능한 구조로 분석
 - 내 역할: 연구 질문 정의, 파이프라인/분석 모듈 분리, 방법론/계획 문서화, 결과 산출물 정리
-- 사용 기술: Python, 분석 파이프라인, LASSO 기반 변수선택, density forecast, 문서화
-- 정량 성과: 2,998행 패널, 16개 대상 회의, 7개 확정 회의 평가, output CSV/테이블/summary 다수 산출
+- 사용 기술: Python, 분석 파이프라인, LASSO 기반 변수선택, density forecast, Fama-MacBeth, Rolling OOS, GMM RE test
+- 정량 성과 (2026-03-18 기준):
+  - 패널: 2998행, 16개 대상 회의, 7개 확정 회의 평가
+  - 점 전망: OOS 7일 MAE 1.38bp, 30일 MAE 5.34bp, DM Test 7일 p=0.097
+  - 분포 예측: 즉시 구간 Skill Score 0.993 (거의 완벽), 장기 Skill Score -0.59 (기준 모형보다 못함)
+  - 과신 핵심 발견: 고VIX 구간 중기 Coverage_80 = 44.1% (정상 대비 절반 이하로 하락)
+  - 효율성: LASSO R² ≈ 0 (공개정보로 기대 예측 불가 → 시장 효율성 지지)
+  - 합리적 기대: GMM J-test 4/4 horizon 채택
+  - MZ Test: Wild bootstrap 4/4 horizon p>0.05 (점 전망 비편향)
+  - 조건부 분석: VIX 높을수록 과신 심화 (β=-0.017, t=-7.77)
+  - MOVE → 금리 기대 분산 Granger-선행, NFP가 가장 강한 뉴스 충격 (abs_ratio=3.87)
+  - 영문 논문 초안 완성 (PhD-level methodology)
 - 링크: [forecast PDF 링크 기입 필요]
 
 ### 프로젝트 2
 - 이름: eco_system_v2
 - 목적: 거시경제 데이터를 멀티에이전트로 분석하고 리포트까지 출력하는 운영형 시스템 설계
-- 내 역할: domain/agents/infrastructure 구조 설계, 실행 모드 정의, 문서/리포트 경로 정리
-- 사용 기술: Python, DDD 스타일 구조화, AI agent orchestration, report generation
-- 정량 성과: 5개 에이전트, 3개 실행 모드, MD/HTML 2종 리포트 출력
+- 내 역할: domain/agents/infrastructure 구조 설계, 실행 모드 정의, 문서/리포트 경로 정리, 에이전트 간 합의 로직 설계
+- 사용 기술: Python, DDD 스타일 구조화, AI agent orchestration, 레짐 탐지(GMM), 리스크 계산(VaR/CVaR), LASSO forecast, report generation
+- 정량 성과 (2026-03-18 기준):
+  - 에이전트: Analysis, Research, Quant, Debate 4개 + Forecast + Orchestrator
+  - 실행 모드: quick/full/forecast 3개
+  - 출력: MD/HTML 2종 리포트
+  - 최신 합의: BEARISH 52~80% 신뢰도 (3회 실행 기준)
+  - 최신 시장 데이터: VIX 22.4 (91.38 백분위), S&P -1.70%, Fed 3.64%, 10Y 4.20%, 스프레드 +79bp, 유가 $95.4, 금 $5,008
+  - 리스크: HIGH, VaR(95%,1일) -1.23%, CVaR -1.75%, MDD -5.11%
+  - 레짐: Bull (High Vol), 50% 신뢰도, 전환 확률 40%
+  - 자산배분 산출: Equity 37~40%, Bond 20%, Gold 17~18%, Cash 23~25%
+  - 3/17→3/18 추적: VIX 23.45→22.4, S&P -1.95→-1.70% (평균회귀 추적 가능)
 - 링크: [GitHub 링크 기입 필요]
 
 ## 경력 / 활동
